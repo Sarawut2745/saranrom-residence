@@ -19,23 +19,7 @@ export default function RentalAnnouncementsPage() {
           </p>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.45rem",
-            background: "rgba(5, 150, 105, 0.08)",
-            border: "1px solid rgba(5, 150, 105, 0.25)",
-            padding: "0.35rem 0.85rem",
-            borderRadius: "9999px",
-            color: "#065f46",
-            fontSize: "0.82rem",
-            fontWeight: 700,
-          }}
-        >
-          <MessageCircle size={15} />
-          <span>เชื่อมต่อระบบ LINE แจ้งเตือนแล้ว</span>
-        </div>
+
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>

@@ -2,14 +2,23 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Building2, Phone, MapPin, Mail, Clock, MessageCircle } from "lucide-react";
+import { useDormitory } from "@/lib/store/dormitory-context";
 
 export const Footer: React.FC = () => {
+  const pathname = usePathname();
+  const { isAuthenticated } = useDormitory();
+
+  // ซ่อน Footer ในหน้าเดินจดมิเตอร์บนมือถือ
+  if (pathname === "/staff/meter-reading") {
+    return null;
+  }
   return (
     <footer
       style={{
         borderTop: "1px solid var(--border-color)",
-        background: "#ffffff",
+        background: "var(--bg-main)",
         marginTop: "5rem",
         padding: "4rem 0 2.5rem",
       }}
@@ -49,20 +58,16 @@ export const Footer: React.FC = () => {
             </div>
 
             <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: 1.65, marginBottom: "1.25rem" }}>
-              อพาร์ตเมนต์และหอพักรายเดือนระดับพรีเมียม สไตล์โมเดิร์น ยกระดับการใช้ชีวิตที่เงียบสงบ ปลอดภัย สบายตา และสะดวกสบาย ใจกลางสุขุมวิท 71
+              หอพักรายเดือนสไตล์โมเดิร์น เงียบสงบ ปลอดภัย สะดวกสบาย ซอยสุขุมวิท 71
             </p>
 
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <span className="badge badge-available">
-                <span className="badge-dot" /> ระบบออนไลน์พร้อมใช้งาน
-              </span>
-            </div>
+
           </div>
 
           {/* Quick Links Column */}
           <div>
             <h4 style={{ color: "#0f172a", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "1.25rem" }}>
-              ระบบงานหอพัก
+              เมนูหลัก
             </h4>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
               <li>
@@ -71,28 +76,32 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/#matrix" style={{ transition: "color 0.2s" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#0f172a")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
-                  ผังห้องพักและความว่างเรียลไทม์
+                <Link href="/#location" style={{ transition: "color 0.2s" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#0f172a")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
+                  ทำเลที่ตั้ง & การเดินทาง
                 </Link>
               </li>
               <li>
                 <Link href="/rental/dashboard" style={{ transition: "color 0.2s" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#0f172a")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
-                  พอร์ทัลผู้เช่า (ดูบิล / สแกน QR / แจ้งซ่อม)
+                  พื้นที่ผู้เช่า (ดูบิล / ชำระเงิน / แจ้งซ่อม)
                 </Link>
               </li>
-              <li>
-                <Link href="/staff/dashboard" style={{ transition: "color 0.2s" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#0f172a")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
-                  ระบบจัดการนิติบุคคล & เจ้าของหอพัก
-                </Link>
-              </li>
-              <li>
-                <Link href="/manual" style={{ transition: "color 0.2s" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#0f172a")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
-                  คู่มือการใช้งานระบบ (User Manual)
-                </Link>
-              </li>
+              {isAuthenticated && (
+                <li>
+                  <Link href="/staff/dashboard" style={{ transition: "color 0.2s" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#0f172a")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
+                    ระบบเจ้าหน้าที่
+                  </Link>
+                </li>
+              )}
+              {isAuthenticated && (
+                <li>
+                  <Link href="/manual" style={{ transition: "color 0.2s" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#0f172a")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
+                    คู่มือการใช้งาน
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/login" style={{ transition: "color 0.2s" }} onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "#0f172a")} onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}>
-                  เข้าสู่ระบบ (Sign In)
+                  เข้าสู่ระบบ
                 </Link>
               </li>
             </ul>
@@ -101,7 +110,7 @@ export const Footer: React.FC = () => {
           {/* Contact Details Column */}
           <div>
             <h4 style={{ color: "#0f172a", fontSize: "0.85rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "1.25rem" }}>
-              ติดต่อสำนักงานนิติบุคคล
+              ติดต่อสำนักงานหอพัก
             </h4>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "0.65rem" }}>
@@ -139,7 +148,7 @@ export const Footer: React.FC = () => {
                     boxShadow: "0 2px 8px rgba(6, 199, 85, 0.25)",
                   }}
                 >
-                  <MessageCircle size={16} /> แอด LINE OA: @594vkfpm
+                  <MessageCircle size={16} /> แอด LINE สอบถาม
                 </a>
               </div>
             </div>
@@ -161,12 +170,10 @@ export const Footer: React.FC = () => {
           }}
         >
           <div>
-            © {new Date().getFullYear()} The Saranrom Residence. Crafted with Next.js & Supabase.
+            © {new Date().getFullYear()} The Saranrom Residence. All rights reserved.
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-            <span>ระบบบริหารหอพักสไตล์โมเดิร์น</span>
-            <span>•</span>
-            <span style={{ color: "#059669", fontWeight: 500 }}>All systems online</span>
+            <span>หอพัก & อพาร์ตเมนต์ สุขุมวิท 71</span>
           </div>
         </div>
       </div>

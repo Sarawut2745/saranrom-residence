@@ -19,6 +19,7 @@ import {
   FileText,
   X,
   AlertTriangle,
+  Search,
 } from "lucide-react";
 
 export default function StaffTenantsPage() {
@@ -33,6 +34,7 @@ export default function StaffTenantsPage() {
   } = useDormitory();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [resetResult, setResetResult] = useState<{
     tenantName: string;
     tempPass: string;
@@ -206,72 +208,182 @@ export default function StaffTenantsPage() {
         </div>
       )}
 
-      {/* Tenants Table */}
-      <div className="table-wrap glass-card">
+      {/* Search Bar */}
+      <div className="glass-card" style={{ padding: "0.85rem 1.25rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+        <Search size={18} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+        <input
+          type="text"
+          className="form-input"
+          placeholder="ค้นหาผู้เช่าตามเลขห้อง, ชื่อ-นามสกุล, เบอร์โทร หรืออีเมล..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ border: "none", background: "transparent", width: "100%", padding: "0.35rem 0", boxShadow: "none" }}
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => setSearchTerm("")}
+            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
+            title="ล้างการค้นหา"
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+
+      {/* Desktop View: Tenants Table (Hidden on Mobile <= 768px) */}
+      <div className="tenants-table-container table-wrap glass-card">
         <table className="custom-table">
           <thead>
             <tr>
-              <th>ห้องพัก</th>
-              <th>ชื่อ-นามสกุลผู้เช่า</th>
-              <th>อีเมล (ล็อกอิน)</th>
-              <th>เบอร์โทรศัพท์</th>
-              <th>เลขบัตรประชาชน</th>
-              <th>ผู้ติดต่อฉุกเฉิน</th>
-              <th>สถานะสัญญา</th>
-              <th style={{ textAlign: "right" }}>การจัดการ</th>
+              <th style={{ whiteSpace: "nowrap" }}>ห้องพัก</th>
+              <th style={{ whiteSpace: "nowrap" }}>ชื่อ-นามสกุลผู้เช่า</th>
+              <th style={{ whiteSpace: "nowrap" }}>อีเมล (ล็อกอิน)</th>
+              <th style={{ whiteSpace: "nowrap" }}>เบอร์โทรศัพท์</th>
+              <th style={{ whiteSpace: "nowrap" }}>เลขบัตรประชาชน</th>
+              <th style={{ whiteSpace: "nowrap" }}>ผู้ติดต่อฉุกเฉิน</th>
+              <th style={{ whiteSpace: "nowrap" }}>สถานะสัญญา</th>
+              <th style={{ textAlign: "right", whiteSpace: "nowrap" }}>การจัดการ</th>
             </tr>
           </thead>
           <tbody>
-            {rentalProfiles.map((profile) => {
-              const u = users.find((item) => item.id === profile.user_id);
-              const r = rooms.find((item) => item.id === profile.room_id);
-              const c = contracts.find((item) => item.rental_profile_id === profile.id);
+            {rentalProfiles
+              .filter((profile) => {
+                if (!searchTerm) return true;
+                const u = users.find((item) => item.id === profile.user_id);
+                const r = rooms.find((item) => item.id === profile.room_id);
+                const term = searchTerm.toLowerCase();
+                return (
+                  r?.room_number.toLowerCase().includes(term) ||
+                  u?.full_name.toLowerCase().includes(term) ||
+                  u?.phone.toLowerCase().includes(term) ||
+                  u?.email.toLowerCase().includes(term)
+                );
+              })
+              .map((profile) => {
+                const u = users.find((item) => item.id === profile.user_id);
+                const r = rooms.find((item) => item.id === profile.room_id);
+                const c = contracts.find((item) => item.rental_profile_id === profile.id);
 
-              return (
-                <tr key={profile.id}>
-                  <td>
-                    <strong style={{ fontSize: "1.1rem", color: "var(--accent-gold)" }}>
-                      ห้อง {r?.room_number || "-"}
-                    </strong>
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                      ชั้น {r?.floor || "-"} • ค่าเช่า ฿{r?.monthly_rent.toLocaleString()}
-                    </div>
-                  </td>
-                  <td>
-                    <strong style={{ color: "var(--text-primary)" }}>{u?.full_name}</strong>
-                  </td>
-                  <td>
-                    <span style={{ color: "#2563eb", fontWeight: 500 }}>{u?.email}</span>
-                  </td>
-                  <td>{u?.phone}</td>
-                  <td style={{ fontSize: "0.85rem" }}>{profile.id_card_number}</td>
-                  <td>
-                    <div style={{ fontSize: "0.85rem" }}>{profile.emergency_contact}</div>
-                    {profile.emergency_phone && (
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>โทร {profile.emergency_phone}</div>
-                    )}
-                  </td>
-                  <td>
-                    <span className="badge badge-available">
-                      {c?.status || "Active"}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: "right" }}>
-                    <div style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
-                      <button
-                        onClick={() => handleResetPassword(profile.user_id, u?.full_name || "ผู้เช่า")}
-                        className="btn btn-secondary btn-sm"
-                        title="กรณีผู้เช่าลืมรหัสผ่าน"
-                      >
-                        <KeyRound size={14} /> รีเซ็ตรหัสผ่าน
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr key={profile.id}>
+                    <td>
+                      <strong style={{ fontSize: "1.1rem", color: "var(--accent-gold)" }}>
+                        ห้อง {r?.room_number || "-"}
+                      </strong>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                        ชั้น {r?.floor || "-"} • ค่าเช่า ฿{r?.monthly_rent.toLocaleString()}
+                      </div>
+                    </td>
+                    <td>
+                      <strong style={{ color: "var(--text-primary)" }}>{u?.full_name}</strong>
+                    </td>
+                    <td>
+                      <span style={{ color: "#2563eb", fontWeight: 500 }}>{u?.email}</span>
+                    </td>
+                    <td>{u?.phone}</td>
+                    <td style={{ fontSize: "0.85rem" }}>{profile.id_card_number}</td>
+                    <td>
+                      <div style={{ fontSize: "0.85rem" }}>{profile.emergency_contact}</div>
+                      {profile.emergency_phone && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>โทร {profile.emergency_phone}</div>
+                      )}
+                    </td>
+                    <td>
+                      <span className="badge badge-available">
+                        {c?.status || "Active"}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      <div style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
+                        <button
+                          onClick={() => handleResetPassword(profile.user_id, u?.full_name || "ผู้เช่า")}
+                          className="btn btn-secondary btn-sm"
+                          title="กรณีผู้เช่าลืมรหัสผ่าน"
+                        >
+                          <KeyRound size={14} /> รีเซ็ตรหัสผ่าน
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile View: Tenants Cards Stream (Visible only on Mobile <= 768px) */}
+      <div className="tenants-cards-container">
+        {rentalProfiles
+          .filter((profile) => {
+            if (!searchTerm) return true;
+            const u = users.find((item) => item.id === profile.user_id);
+            const r = rooms.find((item) => item.id === profile.room_id);
+            const term = searchTerm.toLowerCase();
+            return (
+              r?.room_number.toLowerCase().includes(term) ||
+              u?.full_name.toLowerCase().includes(term) ||
+              u?.phone.toLowerCase().includes(term) ||
+              u?.email.toLowerCase().includes(term)
+            );
+          })
+          .map((profile) => {
+            const u = users.find((item) => item.id === profile.user_id);
+            const r = rooms.find((item) => item.id === profile.room_id);
+            const c = contracts.find((item) => item.rental_profile_id === profile.id);
+
+            return (
+              <div key={`tenant-card-${profile.id}`} className="tenant-mobile-card">
+                <div className="tenant-card-header">
+                  <div>
+                    <div className="tenant-card-room">ห้อง {r?.room_number || "-"}</div>
+                    <div className="tenant-card-sub">ชั้น {r?.floor || "-"} • ค่าเช่า ฿{r?.monthly_rent.toLocaleString()} / เดือน</div>
+                  </div>
+                  <span className="badge badge-available">
+                    {c?.status || "Active"}
+                  </span>
+                </div>
+
+                <div className="tenant-card-name-row">
+                  <div className="tenant-card-name">{u?.full_name || "-"}</div>
+                  <div className="tenant-card-contact-row">
+                    <span style={{ color: "#2563eb", fontWeight: 500 }}>{u?.email}</span>
+                    {u?.phone && (
+                      <>
+                        {" "}• <span style={{ color: "var(--text-primary)" }}>โทร {u.phone}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="tenant-card-grid">
+                  <div className="tenant-grid-item">
+                    <span className="tenant-grid-label">เลขบัตรประชาชน</span>
+                    <span className="tenant-grid-val">{profile.id_card_number}</span>
+                  </div>
+                  <div className="tenant-grid-item">
+                    <span className="tenant-grid-label">ผู้ติดต่อฉุกเฉิน</span>
+                    <span className="tenant-grid-val">
+                      {profile.emergency_contact}
+                      {profile.emergency_phone && (
+                        <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", display: "block" }}>
+                          โทร {profile.emergency_phone}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleResetPassword(profile.user_id, u?.full_name || "ผู้เช่า")}
+                  className="btn btn-secondary tenant-card-btn"
+                >
+                  <KeyRound size={15} /> รีเซ็ตรหัสผ่านผู้เช่า
+                </button>
+              </div>
+            );
+          })}
       </div>
 
       {/* Modal: Create Tenant & Assign Room */}

@@ -53,7 +53,7 @@ export default function RentalLayout({ children }: { children: React.ReactNode }
           }}
         />
         <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", fontWeight: 500 }}>
-          กำลังตรวจสอบสถานะการเข้าสู่ระบบ...
+          กำลังโหลดข้อมูล...
         </p>
       </div>
     );
@@ -168,10 +168,10 @@ export default function RentalLayout({ children }: { children: React.ReactNode }
             }}
           >
             <div>
-              ผู้ใช้งานปัจจุบัน: <strong style={{ color: "var(--text-primary)" }}>{currentUser.full_name}</strong>
+              เข้าใช้งานในชื่อ: <strong style={{ color: "var(--text-primary)" }}>{currentUser.full_name}</strong>
             </div>
             <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-              อีเมล: {currentUser.email} • สิทธิ์: {currentUser.role === "staff" ? "เจ้าหน้าที่ / นิติบุคคล" : currentUser.role}
+              อีเมล: {currentUser.email} • ตำแหน่ง: {currentUser.role === "staff" ? "เจ้าหน้าที่" : currentUser.role}
             </div>
           </div>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: "1.5rem", lineHeight: 1.5 }}>
@@ -184,7 +184,7 @@ export default function RentalLayout({ children }: { children: React.ReactNode }
               className="btn btn-primary"
               style={{ width: "100%", height: "46px", justifyContent: "center", fontSize: "0.95rem" }}
             >
-              ไปยังระบบจัดการเจ้าหน้าที่
+              ไปหน้าเจ้าหน้าที่
             </Link>
 
             <button

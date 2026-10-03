@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ระบบขัดข้องชั่วคราว
           </h2>
           <p style={{ color: "#64748b", fontSize: "0.92rem", lineHeight: 1.6, marginBottom: "1.75rem" }}>
-            ขออภัยในความไม่สะดวก ไม่สามารถเชื่อมต่อกับระบบฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง หรือติดต่อฝ่ายนิติบุคคล
+            ขออภัยในความไม่สะดวก ไม่สามารถเชื่อมต่อกับระบบฐานข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง หรือติดต่อสำนักงานหอพัก
           </p>
 
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>

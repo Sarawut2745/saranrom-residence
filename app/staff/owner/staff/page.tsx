@@ -78,19 +78,19 @@ export default function OwnerStaffManagementPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.2rem" }}>
             <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--text-primary)" }}>
-              จัดการบัญชีเจ้าหน้าที่นิติบุคคล (Staff Accounts)
+              จัดการบัญชีเจ้าหน้าที่หอพัก
             </h2>
             <span className="badge badge-owner">
-              <Crown size={12} /> สิทธิ์เฉพาะเจ้าของหอพัก (Owner Only)
+              <Crown size={12} /> สิทธิ์เฉพาะเจ้าของหอพัก
             </span>
           </div>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem" }}>
-            สร้าง ลบ และกำหนดตำแหน่งการทำงานของเจ้าหน้าที่นิติบุคคล
+            สร้าง ลบ และกำหนดตำแหน่งการทำงานของเจ้าหน้าที่หอพัก
           </p>
         </div>
 
         <button onClick={() => setIsModalOpen(true)} className="btn btn-primary">
-          <UserPlus size={16} /> เพิ่มบัญชี Staff ใหม่
+          <UserPlus size={16} /> เพิ่มบัญชีเจ้าหน้าที่ใหม่
         </button>
       </div>
 
@@ -101,17 +101,17 @@ export default function OwnerStaffManagementPage() {
         </div>
       )}
 
-      {/* Staff Table */}
-      <div className="table-wrap glass-card">
+      {/* Desktop View: Staff Table (Hidden on Mobile <= 768px) */}
+      <div className="staff-accounts-table-container table-wrap glass-card">
         <table className="custom-table">
           <thead>
             <tr>
-              <th>ชื่อ-นามสกุล</th>
-              <th>ตำแหน่งงาน</th>
-              <th>เบอร์โทรศัพท์</th>
-              <th>อีเมล</th>
-              <th>ระดับสิทธิ์</th>
-              <th style={{ textAlign: "right" }}>การดำเนินการ</th>
+              <th style={{ whiteSpace: "nowrap" }}>ชื่อ-นามสกุล</th>
+              <th style={{ whiteSpace: "nowrap" }}>ตำแหน่งงาน</th>
+              <th style={{ whiteSpace: "nowrap" }}>เบอร์โทรศัพท์</th>
+              <th style={{ whiteSpace: "nowrap" }}>อีเมล</th>
+              <th style={{ whiteSpace: "nowrap" }}>ระดับสิทธิ์</th>
+              <th style={{ textAlign: "right", whiteSpace: "nowrap" }}>การดำเนินการ</th>
             </tr>
           </thead>
           <tbody>
@@ -135,11 +135,11 @@ export default function OwnerStaffManagementPage() {
                   <td>
                     {sp.is_owner ? (
                       <span className="badge badge-owner">
-                        <Crown size={12} /> เจ้าของหอพัก (Owner)
+                        <Crown size={12} /> เจ้าของหอพัก
                       </span>
                     ) : (
                       <span className="badge badge-maintenance">
-                        <ShieldCheck size={12} /> เจ้าหน้าที่นิติบุคคล (Staff)
+                        <ShieldCheck size={12} /> เจ้าหน้าที่หอพัก
                       </span>
                     )}
                   </td>
@@ -165,6 +165,65 @@ export default function OwnerStaffManagementPage() {
         </table>
       </div>
 
+      {/* Mobile View: Staff Cards Stream (Visible only on Mobile <= 768px) */}
+      <div className="staff-accounts-cards-container">
+        {staffProfiles.map((sp) => {
+          const u = users.find((item) => item.id === sp.user_id);
+          if (!u) return null;
+
+          return (
+            <div key={`staff-card-${sp.id}`} className="staff-account-card">
+              <div className="staff-account-header">
+                <div>
+                  <div className="staff-account-name">{u.full_name}</div>
+                  <div className="staff-account-created">
+                    สร้างเมื่อ: {new Date(u.created_at).toLocaleDateString("th-TH")}
+                  </div>
+                </div>
+                {sp.is_owner ? (
+                  <span className="badge badge-owner">
+                    <Crown size={12} /> เจ้าของหอพัก
+                  </span>
+                ) : (
+                  <span className="badge badge-maintenance">
+                    <ShieldCheck size={12} /> เจ้าหน้าที่หอพัก
+                  </span>
+                )}
+              </div>
+
+              <div className="staff-account-grid">
+                <div>
+                  <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>ตำแหน่งงาน</span>
+                  <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>{sp.position}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>เบอร์โทรศัพท์</span>
+                  <span style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>{u.phone || "-"}</span>
+                </div>
+                <div style={{ gridColumn: "span 2" }}>
+                  <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>อีเมลเข้าสู่ระบบ</span>
+                  <span style={{ fontSize: "0.88rem", color: "#2563eb", fontWeight: 500 }}>{u.email}</span>
+                </div>
+              </div>
+
+              {!sp.is_owner ? (
+                <button
+                  type="button"
+                  onClick={() => handleDelete(u.id, u.full_name)}
+                  className="btn btn-danger staff-account-btn"
+                >
+                  <Trash2 size={14} /> ลบบัญชีเจ้าหน้าที่
+                </button>
+              ) : (
+                <div style={{ textAlign: "center", fontSize: "0.78rem", color: "var(--text-muted)", padding: "0.4rem" }}>
+                  ★ บัญชีหลักของเจ้าของหอพัก (ไม่สามารถลบได้)
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       {/* Create Staff Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
@@ -183,7 +242,7 @@ export default function OwnerStaffManagementPage() {
               </button>
             </div>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "1.25rem" }}>
-              กรอกข้อมูลเพื่อสร้างบัญชีเข้าใช้งานระบบนิติบุคคล
+              กรอกข้อมูลเพื่อสร้างบัญชีเข้าใช้งานระบบจัดการหอพัก
             </p>
 
             <form onSubmit={handleCreate}>

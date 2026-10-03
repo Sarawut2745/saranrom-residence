@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDormitory } from "@/lib/store/dormitory-context";
 import {
@@ -8,7 +8,6 @@ import {
   Mail,
   ArrowRight,
   AlertCircle,
-  UserCheck,
   PhoneCall,
   Loader2,
   Shield,
@@ -16,12 +15,22 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, currentUser, logout } = useDormitory();
+  const { login, logout, currentUser, isLoading: isDormLoading } = useDormitory();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const targetUrl = currentUser?.role === "rental" ? "/rental/dashboard" : "/staff/dashboard";
+
+  // นำทางไปยังหน้าหลักทันทีหากผู้ใช้งานเข้าสู่ระบบอยู่แล้ว
+  useEffect(() => {
+    if (!isDormLoading && currentUser) {
+      const target = currentUser.role === "rental" ? "/rental/dashboard" : "/staff/dashboard";
+      window.location.replace(target);
+    }
+  }, [currentUser, isDormLoading]);
 
   const executeLogin = (loginEmail: string, loginPass: string) => {
     setError("");
@@ -29,11 +38,8 @@ export default function LoginPage() {
     try {
       const result = login(loginEmail, loginPass);
       if (result.success && result.user) {
-        if (result.user.role === "rental") {
-          router.push("/rental/dashboard");
-        } else {
-          router.push("/staff/dashboard");
-        }
+        const target = result.user.role === "rental" ? "/rental/dashboard" : "/staff/dashboard";
+        window.location.replace(target);
       } else {
         setError(result.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
         setIsLoading(false);
@@ -53,6 +59,72 @@ export default function LoginPage() {
     executeLogin(email, password);
   };
 
+  // แสดงสถานะกำลังโหลดขณะกำลังตรวจสอบหรือกำลังเปลี่ยนเส้นทาง
+  if (isDormLoading || currentUser) {
+    return (
+      <div
+        className="login-wrapper"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          padding: "1.5rem",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "14px",
+            color: "var(--text-secondary)",
+            background: "#ffffff",
+            padding: "2rem 2.5rem",
+            borderRadius: "16px",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.06)",
+            border: "1px solid var(--border-color)",
+            textAlign: "center",
+            maxWidth: "400px",
+            width: "100%",
+          }}
+        >
+          <Loader2 size={36} className="animate-spin" style={{ color: "#4f46e5" }} />
+          <div>
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.35rem" }}>
+              เข้าสู่ระบบสำเร็จ
+            </h3>
+            <span style={{ fontSize: "0.86rem", color: "#64748b" }}>
+              กำลังนำท่านไปยังหน้าหลักของระบบ...
+            </span>
+          </div>
+          {currentUser && (
+            <div style={{ marginTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%" }}>
+              <a
+                href={targetUrl}
+                className="btn btn-primary"
+                style={{ width: "100%", height: "42px", justifyContent: "center", fontSize: "0.88rem" }}
+              >
+                คลิกที่นี่เพื่อไปหน้าหลักทันที
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  window.location.reload();
+                }}
+                className="btn btn-secondary"
+                style={{ width: "100%", height: "38px", justifyContent: "center", fontSize: "0.82rem" }}
+              >
+                ออกจากระบบ / สลับบัญชี
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="login-wrapper">
       <div className="login-card-container">
@@ -69,35 +141,6 @@ export default function LoginPage() {
               The Saranrom Residence & Apartment
             </p>
           </div>
-
-          {/* Already Logged In Notice */}
-          {currentUser && (
-            <div className="active-session-card">
-              <div className="session-header">
-                <UserCheck size={18} />
-                <span>คุณเข้าสู่ระบบอยู่แล้ว</span>
-              </div>
-              <p className="session-user">
-                เข้าใช้งานในชื่อ: <strong>{currentUser.full_name}</strong> ({currentUser.role === "rental" ? "ผู้เช่าห้องพัก" : "เจ้าหน้าที่"})
-              </p>
-              <div className="session-actions">
-                <button
-                  type="button"
-                  onClick={() => router.push(currentUser.role === "rental" ? "/rental/dashboard" : "/staff/dashboard")}
-                  className="btn-dashboard"
-                >
-                  ไปยังหน้าแดชบอร์ด <ArrowRight size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => logout()}
-                  className="btn-logout"
-                >
-                  ออกจากระบบ
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Error Alert */}
           {error && (
@@ -226,11 +269,11 @@ export default function LoginPage() {
           <div className="login-footer">
             <div className="support-notice">
               <Shield size={14} className="support-icon" />
-              <span>หากลืมรหัสผ่านหรือต้องการเปิดบัญชีใหม่ กรุณาติดต่อสำนักงานนิติบุคคล</span>
+              <span>หากลืมรหัสผ่านหรือต้องการเปิดบัญชีใหม่ กรุณาติดต่อสำนักงานหอพัก</span>
             </div>
             <a href="tel:027110099" className="btn-call-support">
               <PhoneCall size={14} />
-              <span>โทรติดต่อสำนักงาน: 02-711-0099</span>
+              <span>โทร: 02-711-0099</span>
             </a>
           </div>
         </div>

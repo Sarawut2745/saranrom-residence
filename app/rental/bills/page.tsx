@@ -235,8 +235,108 @@ export default function RentalBillsPage() {
         </div>
       </div>
 
-      {/* 2. Bills Cards List */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      {/* 2. Desktop View: Bills Table (Hidden on Mobile <= 768px) */}
+      <div className="rental-bills-table-container table-wrap glass-card">
+        <table className="custom-table">
+          <thead>
+            <tr>
+              <th style={{ whiteSpace: "nowrap" }}>งวดประจำเดือน</th>
+              <th style={{ whiteSpace: "nowrap" }}>กำหนดชำระ</th>
+              <th style={{ whiteSpace: "nowrap" }}>ค่าห้อง</th>
+              <th style={{ whiteSpace: "nowrap" }}>ค่าน้ำ</th>
+              <th style={{ whiteSpace: "nowrap" }}>ค่าไฟ</th>
+              <th style={{ whiteSpace: "nowrap" }}>ส่วนกลาง</th>
+              <th style={{ whiteSpace: "nowrap" }}>ยอดรวมสุทธิ</th>
+              <th style={{ whiteSpace: "nowrap" }}>สถานะ</th>
+              <th style={{ textAlign: "right", whiteSpace: "nowrap" }}>เอกสาร / การชำระเงิน</th>
+            </tr>
+          </thead>
+          <tbody>
+            {userBills.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-muted)" }}>
+                  ยังไม่มีประวัติใบแจ้งหนี้ในระบบ
+                </td>
+              </tr>
+            ) : (
+              userBills.map((bill) => (
+                <tr key={`table-${bill.id}`}>
+                  <td>
+                    <strong style={{ fontSize: "1.05rem", color: "var(--text-primary)" }}>
+                      เดือน {bill.month}/{bill.year}
+                    </strong>
+                  </td>
+                  <td style={{ whiteSpace: "nowrap", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                    {bill.due_date}
+                  </td>
+                  <td>฿{bill.room_fee.toLocaleString()}</td>
+                  <td>
+                    <div>฿{bill.water_fee.toLocaleString()}</div>
+                    <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>({bill.water_units} หน่วย)</span>
+                  </td>
+                  <td>
+                    <div>฿{bill.electric_fee.toLocaleString()}</div>
+                    <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>({bill.electric_units} หน่วย)</span>
+                  </td>
+                  <td>฿{bill.other_fees.toLocaleString()}</td>
+                  <td>
+                    <strong style={{ fontSize: "1.15rem", color: bill.status === "unpaid" ? "#dc2626" : "#065f46" }}>
+                      ฿{bill.total_amount.toLocaleString()}
+                    </strong>
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    {bill.status === "unpaid" && (
+                      <span className="badge badge-unpaid">รอชำระเงิน</span>
+                    )}
+                    {bill.status === "pending_verification" && (
+                      <span className="badge badge-pending">
+                        <Clock size={12} /> รอตรวจสลิป
+                      </span>
+                    )}
+                    {bill.status === "paid" && (
+                      <span className="badge badge-paid">
+                        <CheckCircle2 size={12} /> ชำระแล้ว
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "inline-flex", gap: "0.4rem", alignItems: "center" }}>
+                      <button
+                        type="button"
+                        onClick={() => setDetailBill(bill)}
+                        className="btn btn-secondary btn-sm"
+                        title="ดูรายละเอียดบิลและพิมพ์ใบเสร็จ"
+                      >
+                        <Eye size={14} />
+                        <span>ดูบิล / พิมพ์ใบเสร็จ</span>
+                      </button>
+
+                      {bill.status === "unpaid" && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPayModal(bill)}
+                          className="btn btn-primary btn-sm"
+                          style={{
+                            background: "#0f172a",
+                            fontWeight: 700,
+                            gap: "0.35rem",
+                          }}
+                        >
+                          <QrCode size={14} />
+                          <span>จ่ายเงิน</span>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* 3. Mobile View: Bills Cards Stream (Visible only on Mobile <= 768px) */}
+      <div className="rental-bills-cards-container">
         {userBills.map((bill) => {
           return (
             <div

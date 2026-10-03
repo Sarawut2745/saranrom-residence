@@ -55,10 +55,10 @@ export default function StaffSiteContentPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            จัดการเนื้อหาหน้าแรกของเว็บไซต์ (Site Content Editor)
+            แก้ไขข้อมูลหน้าแรก
           </h2>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem" }}>
-            ปรับแต่งข้อความ รูปภาพ และข้อมูลในแต่ละส่วนแบบไดนามิก (Generic Content)
+            ปรับแต่งข้อความ รูปภาพ และข้อมูลในแต่ละส่วนของหน้าแรก
           </p>
         </div>
 
@@ -118,7 +118,7 @@ export default function StaffSiteContentPage() {
             <input
               type="text"
               className="form-input"
-              placeholder="https://images.unsplash.com/..."
+              placeholder="/images/property/..."
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
             />

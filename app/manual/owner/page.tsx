@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDormitory } from "@/lib/store/dormitory-context";
 import "../manual.css";
 import {
   BookOpen,
@@ -40,71 +42,90 @@ const chapters: ManualChapter[] = [
   {
     id: "ch1",
     number: "บทที่ 1",
-    title: "การเข้าสู่ระบบและภาพรวมสิทธิ์เจ้าของหอพัก (Owner Login & Executive Overview)",
+    title: "การเข้าสู่ระบบและภาพรวมสิทธิ์เจ้าของหอพัก",
     shortTitle: "1. แดชบอร์ดเจ้าของ",
-    description: "โครงสร้างสิทธิ์ระดับสูงสุด (Super Admin / Owner) และแถบเมนูควบคุมเฉพาะผู้บริหาร",
+    description: "โครงสร้างสิทธิ์ระดับสูงสุดและแถบเมนูควบคุมเฉพาะผู้บริหาร",
   },
   {
     id: "ch2",
     number: "บทที่ 2",
-    title: "รายงานผลประกอบการและการเงินเชิงลึก (Financial Analytics & Occupancy Dashboard)",
+    title: "รายงานผลประกอบการและการเงินเชิงลึก",
     shortTitle: "2. วิเคราะห์การเงิน",
     description: "การวิเคราะห์รายรับจริง หนี้ค้างชำระ สัดส่วนโครงสร้างรายได้ และอัตราการเข้าพัก",
   },
   {
     id: "ch3",
     number: "บทที่ 3",
-    title: "การจัดการประเภทห้องพักและกำหนดอัตราค่าบริการ (Room Types & Utility Rates)",
+    title: "การจัดการประเภทห้องพักและกำหนดอัตราค่าบริการ",
     shortTitle: "3. ประเภทห้อง & ค่าน้ำไฟ",
-    description: "การกำหนดราคาค่าเช่าฐาน อัตราค่าน้ำประปา (18฿) ค่าไฟฟ้า (8฿) และสิ่งอำนวยความสะดวก",
+    description: "การกำหนดราคาค่าเช่าฐาน อัตราค่าน้ำประปา ค่าไฟฟ้า และสิ่งอำนวยความสะดวก",
   },
   {
     id: "ch4",
     number: "บทที่ 4",
-    title: "การบริหารจัดการบัญชีเจ้าหน้าที่นิติบุคคล (Staff Accounts & Access Management)",
-    shortTitle: "4. จัดการบัญชี Staff",
+    title: "การบริหารจัดการบัญชีเจ้าหน้าที่หอพัก",
+    shortTitle: "4. จัดการบัญชีเจ้าหน้าที่",
     description: "การสร้างบัญชีพนักงานใหม่ กำหนดบทบาท มอบสิทธิ์การเข้าถึง และระงับบัญชีเมื่อพ้นสภาพ",
   },
   {
     id: "ch5",
     number: "บทที่ 5",
-    title: "การกำกับดูแลการเงินและการตรวจสอบสลิป (Financial Supervision & Slip Auditing)",
+    title: "การกำกับดูแลการเงินและการตรวจสอบสลิป",
     shortTitle: "5. กำกับดูแลการเงิน",
     description: "การสุ่มตรวจสลิปโอนเงินย้อนหลัง การตรวจทานใบเสร็จรับเงินทางการ และการกระทบยอดธนาคาร",
   },
   {
     id: "ch6",
     number: "บทที่ 6",
-    title: "การบริหารสัญญาเช่า เงินประกัน และการเข้าพัก (Tenants, Contracts & Deposits Control)",
+    title: "การบริหารสัญญาเช่า เงินประกัน และการเข้าพัก",
     shortTitle: "6. สัญญาเช่า & เงินประกัน",
     description: "การควบคุมยอดเงินมัดจำประกันความเสียหายรวมของอาคาร และการติดตามสัญญาเช่าระยะยาว",
   },
   {
     id: "ch7",
     number: "บทที่ 7",
-    title: "การควบคุมงานบำรุงรักษาและการสื่อสารกับผู้เช่า (Maintenance Oversight & Broadcast Control)",
-    shortTitle: "7. งานซ่อมบำรุง & LINE",
-    description: "การติดตามประสิทธิภาพงานซ่อม งบประมาณส่วนกลาง และนโยบายบรอดแคสต์ LINE OA",
+    title: "การควบคุมงานบำรุงรักษาและการสื่อสารกับผู้เช่า",
+    shortTitle: "7. งานซ่อมบำรุงและประกาศ",
+    description: "การติดตามประสิทธิภาพงานซ่อม งบประมาณส่วนกลาง และนโยบายการส่งประกาศแจ้งเตือน",
   },
   {
     id: "ch8",
     number: "บทที่ 8",
-    title: "แนวปฏิบัติและข้อควรระวังสำคัญสำหรับเจ้าของหอพัก (Executive Governance & Golden Rules)",
-    shortTitle: "8. แนวปฏิบัติ & กฎเหล็ก",
-    description: "4 กฎเหล็กด้านความปลอดภัย การเงิน กองทุนสำรองบำรุงรักษาอาคาร (Sinking Fund) และ PDPA",
+    title: "แนวปฏิบัติและข้อควรระวังสำคัญสำหรับเจ้าของหอพัก",
+    shortTitle: "8. แนวปฏิบัติและกฎสำคัญ",
+    description: "4 กฎสำคัญด้านความปลอดภัย การเงิน กองทุนสำรองบำรุงรักษาอาคาร และการคุ้มครองข้อมูลส่วนบุคคล",
   },
   {
     id: "ch9",
     number: "บทที่ 9",
-    title: "คำถามที่พบบ่อยสำหรับเจ้าของหอพัก (Executive FAQ)",
-    shortTitle: "9. คำถามที่พบบ่อย (FAQ)",
+    title: "คำถามที่พบบ่อยสำหรับเจ้าของหอพัก",
+    shortTitle: "9. คำถามที่พบบ่อย",
     description: "รวม 6 ข้อสงสัยเชิงบริหาร การเงิน ภาษี และแนวทางจัดการความเสี่ยง",
   },
 ];
 
 export default function OwnerManualPage() {
+  const router = useRouter();
+  const { currentUser, currentStaffProfile, isOwner, isLoading } = useDormitory();
+
+  const isUserOwner = isOwner || !!currentStaffProfile?.is_owner;
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!currentUser) {
+        router.replace("/login");
+      } else if (!isUserOwner) {
+        router.replace("/manual");
+      }
+    }
+  }, [isLoading, currentUser, isUserOwner, router]);
+
   const [activeChapter, setActiveChapter] = useState("ch1");
   const [lightboxImg, setLightboxImg] = useState<{ src: string; caption: string } | null>(null);
+
+  if (isLoading || !currentUser || !isUserOwner) {
+    return <div style={{ minHeight: "100vh" }} />;
+  }
 
   const scrollToSection = (id: string) => {
     setActiveChapter(id);
@@ -197,13 +218,13 @@ export default function OwnerManualPage() {
           <div>
             <div className="manual-tag manual-tag-banner" style={{ background: "rgba(147, 51, 234, 0.25)", color: "#e9d5ff", borderColor: "rgba(147, 51, 234, 0.4)" }}>
               <Crown size={13} />
-              <span>USER MANUAL - VOLUME 3: EXECUTIVE & OWNER PORTAL</span>
+              <span>คู่มือการใช้งานระบบ - เล่มที่ 3: สำหรับเจ้าของและผู้บริหาร</span>
             </div>
             <h1 className="manual-hero-title-light">คู่มือการใช้งานระบบสำหรับเจ้าของและผู้บริหาร</h1>
             <p className="manual-hero-desc-light">
               เดอะ สราญรมย์ เรสซิเดนซ์ (The Saranrom Residence & Apartment)
               รวบรวมฟังก์ชันควบคุมเชิงบริหารระดับสูง การติดตามรายงานผลประกอบการและการเงินเชิงลึก
-              การตั้งค่าประเภทห้องและอัตราค่าน้ำ-ไฟมาตรฐาน การบริหารจัดการบัญชีพนักงานนิติบุคคล
+              การตั้งค่าประเภทห้องและอัตราค่าน้ำ-ไฟมาตรฐาน การบริหารจัดการบัญชีเจ้าหน้าที่หอพัก
               และการกำกับดูแลนโยบายอาคารอย่างเป็นระบบ
             </p>
             <div style={{ display: "flex", gap: "1rem", fontSize: "0.75rem", color: "#e9d5ff", marginTop: "1rem", flexWrap: "wrap" }}>
@@ -221,7 +242,7 @@ export default function OwnerManualPage() {
           {/* Sticky Sidebar Navigation */}
           <div className="rental-sidebar">
             <div className="rental-sidebar-title" style={{ color: "#7e22ce" }}>
-              สารบัญเนื้อหา (Owner Chapters)
+              สารบัญเนื้อหา
             </div>
             <nav className="rental-sidebar-menu">
               {chapters.map((ch) => (
@@ -276,9 +297,9 @@ export default function OwnerManualPage() {
             <section id="ch1" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 1</span>
-                <h2 className="chapter-title">การเข้าสู่ระบบและภาพรวมสิทธิ์เจ้าของหอพัก (Owner Login & Executive Overview)</h2>
+                <h2 className="chapter-title">การเข้าสู่ระบบและภาพรวมสิทธิ์เจ้าของหอพัก</h2>
                 <p className="chapter-subtitle">
-                  โครงสร้างสิทธิ์ระดับสูงสุด (Super Admin / Owner) และเมนูควบคุมพิเศษเฉพาะผู้บริหาร
+                  โครงสร้างสิทธิ์ระดับสูงสุดและแถบเมนูควบคุมเฉพาะผู้บริหาร
                 </p>
               </div>
 
@@ -300,7 +321,7 @@ export default function OwnerManualPage() {
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 1: ภาพรวมแดชบอร์ดเจ้าของหอพัก พร้อมจุดสำคัญ (1) การ์ดโปรไฟล์ Owner (2) เมนูเฉพาะเจ้าของหอพัก (3) แผงตัวชี้วัดภาพรวม
+                  ภาพที่ 1: ภาพรวมแดชบอร์ดเจ้าของหอพัก พร้อมจุดสำคัญ: การ์ดโปรไฟล์เจ้าของ, เมนูเฉพาะเจ้าของหอพัก, และแผงตัวชี้วัดภาพรวม
                 </div>
               </div>
 
@@ -308,27 +329,27 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>1</span>
                   <div>
-                    <strong>จุดที่ 1: การ์ดโปรไฟล์เจ้าของหอพัก (Owner Profile Card)</strong>
+                    <strong>จุดที่ 1: การ์ดโปรไฟล์เจ้าของหอพัก</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      แสดงชื่อผู้บริหาร สัญลักษณ์มงกุฎ และป้ายกำกับสิทธิ์สีม่วง "Owner" ยืนยันว่าคุณกำลังใช้งานระบบในฐานะผู้มีอำนาจตัดสินใจสูงสุด
+                      แสดงชื่อผู้บริหาร สัญลักษณ์มงกุฎ และป้ายกำกับสิทธิ์ "เจ้าของหอพัก" ยืนยันว่าคุณกำลังใช้งานระบบในฐานะผู้มีอำนาจตัดสินใจสูงสุด
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>2</span>
                   <div>
-                    <strong>จุดที่ 2: แถบเมนูเฉพาะเจ้าของหอพัก (Owner Exclusive Menu)</strong>
+                    <strong>จุดที่ 2: แถบเมนูเฉพาะเจ้าของหอพัก</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      ประกอบด้วย 3 เครื่องมือหลัก: จัดการบัญชี Staff, ประเภทห้อง & อัตราค่าน้ำไฟ, และ วิเคราะห์รายรับ & การเงิน ซึ่งถูกซ่อนไว้จากเจ้าหน้าที่ทั่วไป
+                      ประกอบด้วย 3 เครื่องมือหลัก: จัดการบัญชีเจ้าหน้าที่, ประเภทห้องและอัตราค่าน้ำไฟ, และ วิเคราะห์รายรับและการเงิน ซึ่งถูกซ่อนไว้จากเจ้าหน้าที่ทั่วไป
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>3</span>
                   <div>
-                    <strong>จุดที่ 3: แผงตัวชี้วัดภาพรวมอาคาร (Executive Highlights)</strong>
+                    <strong>จุดที่ 3: แผงตัวชี้วัดภาพรวมอาคาร</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      สรุปสถิติด่วน 4 ด้าน: รายรับรวมที่ชำระแล้ว, ยอดหนี้ค้างชำระ, อัตราการเช่าห้องพัก (%), และจำนวนประเภทห้องพักที่เปิดให้บริการ
+                      สรุปสถิติด่วน 4 ด้าน: รายรับรวมที่ชำระแล้ว, ยอดหนี้ค้างชำระ, อัตราการเช่าห้องพัก, และจำนวนประเภทห้องพักที่เปิดให้บริการ
                     </div>
                   </div>
                 </div>
@@ -337,11 +358,11 @@ export default function OwnerManualPage() {
               <div className="callout-tip">
                 <div className="callout-tip-header">
                   <Info size={16} />
-                  <span>คำแนะนำการแบ่งแยกหน้าที่ระหว่างเจ้าของกับนิติบุคคล</span>
+                  <span>คำแนะนำการแบ่งแยกหน้าที่ระหว่างเจ้าของกับเจ้าหน้าที่หอพัก</span>
                 </div>
                 <div className="callout-tip-text">
-                  แม้ว่าบัญชี Owner จะสามารถเข้าถึงฟังก์ชันงานประจำวันของนิติบุคคลได้ทุกอย่าง (เช่น ออกบิล หรือตรวจสลิป)
-                  แต่แนะนำให้มอบหมายงานหน้างานให้นิติบุคคลปฏิบัติการเป็นหลัก และใช้บัญชี Owner สำหรับงานเชิงบริหาร กำกับดูแล และอนุมัติกรณีพิเศษ
+                  แม้ว่าบัญชีเจ้าของจะสามารถเข้าถึงฟังก์ชันงานประจำวันของเจ้าหน้าที่หอพักได้ทุกอย่าง (เช่น การออกบิล หรือการตรวจสลิป)
+                  แต่แนะนำให้มอบหมายงานหน้างานให้เจ้าหน้าที่หอพักปฏิบัติการเป็นหลัก และใช้บัญชีเจ้าของสำหรับงานเชิงบริหาร กำกับดูแล และอนุมัติกรณีพิเศษ
                 </div>
               </div>
             </section>
@@ -350,7 +371,7 @@ export default function OwnerManualPage() {
             <section id="ch2" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 2</span>
-                <h2 className="chapter-title">รายงานผลประกอบการและการเงินเชิงลึก (Financial Analytics & Occupancy Dashboard)</h2>
+                <h2 className="chapter-title">รายงานผลประกอบการและการเงินเชิงลึก</h2>
                 <p className="chapter-subtitle">
                   การวิเคราะห์กระแสเงินสด โครงสร้างรายได้ และสถิติอัตราการเช่าห้องพักรายเดือน
                 </p>
@@ -374,7 +395,7 @@ export default function OwnerManualPage() {
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 2a: หน้ารายงานผลประกอบการ (1) ตัวชี้วัด 4 มิติ (รายรับจริง/หนี้ค้าง/รอตรวจ/อัตราเช่า) (2) ป้ายสิทธิ์บริหาร Executive Crown
+                  ภาพที่ 2a: หน้ารายงานผลประกอบการ ประกอบด้วยตัวชี้วัด 4 ด้าน (รายรับจริง, หนี้ค้างชำระ, รอตรวจสลิป, อัตราเช่าห้อง) และป้ายแสดงสิทธิ์ผู้บริหาร
                 </div>
               </div>
 
@@ -396,7 +417,7 @@ export default function OwnerManualPage() {
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 2b: โครงสร้างรายได้ (1) สัดส่วนรายรับแยกตามประเภท (ค่าห้อง/ค่าน้ำ/ค่าไฟ/ค่าบริการ) (2) สถิติห้องพักว่าง-ไม่ว่าง
+                  ภาพที่ 2b: โครงสร้างรายได้ ประกอบด้วยสัดส่วนรายรับแยกตามประเภท และสถิติสถานะห้องพักว่างหรือมีผู้เช่า
                 </div>
               </div>
 
@@ -404,25 +425,25 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>1</span>
                   <div>
-                    <strong>การวิเคราะห์รายรับจริงที่ได้รับแล้ว (Realized Revenue)</strong>
+                    <strong>การวิเคราะห์รายรับจริงที่ได้รับแล้ว</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      แสดงยอดเงินรวมจากบิลที่มีสถานะ "ชำระแล้ว" (Paid) พร้อมแสดงจำนวนบิลที่ปิดรอบชำระเรียบร้อย
+                      แสดงยอดเงินรวมจากบิลที่มีสถานะ "ชำระแล้ว" พร้อมแสดงจำนวนบิลที่ปิดรอบชำระเรียบร้อย
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>2</span>
                   <div>
-                    <strong>การติดตามหนี้ค้างชำระ (Arrears & Overdue Tracking)</strong>
+                    <strong>การติดตามหนี้ค้างชำระ</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      แสดงยอดหนี้ที่ผู้เช่ายังไม่ชำระ เพื่อให้ผู้บริหารติดตามนิติบุคคลในการออกหนังสือแจ้งเตือนชำระเงินตามกำหนด
+                      แสดงยอดหนี้ที่ผู้เช่ายังไม่ชำระ เพื่อให้ผู้บริหารติดตามเจ้าหน้าที่หอพักในการออกหนังสือแจ้งเตือนชำระเงินตามกำหนด
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>3</span>
                   <div>
-                    <strong>การวิเคราะห์โครงสร้างรายได้ 4 ด้าน (Revenue Breakdown)</strong>
+                    <strong>การวิเคราะห์โครงสร้างรายได้ 4 ด้าน</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       แยกแยะรายรับชัดเจนระหว่าง ค่าเช่าห้องพัก (รายได้หลัก), ค่าไฟฟ้า (อัตรา 8 บาท/หน่วย), ค่าน้ำประปา (อัตรา 18 บาท/หน่วย), และค่าบริการส่วนกลาง
                     </div>
@@ -431,7 +452,7 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>4</span>
                   <div>
-                    <strong>การติดตามอัตราการเข้าพัก (Occupancy Rate %)</strong>
+                    <strong>การติดตามอัตราการเข้าพัก</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       คำนวณสัดส่วนห้องพักที่มีผู้เช่าเทียบกับจำนวนห้องทั้งหมดในอาคาร ใช้ประเมินความคุ้มค่าและวางแผนการตลาดห้องว่าง
                     </div>
@@ -442,10 +463,10 @@ export default function OwnerManualPage() {
               <div className="callout-danger">
                 <div className="callout-danger-header">
                   <AlertTriangle size={16} />
-                  <span>ข้อควรระวัง: การกระทบยอดบัญชีธนาคาร (Bank Reconciliation)</span>
+                  <span>ข้อควรระวัง: การกระทบยอดบัญชีธนาคาร</span>
                 </div>
                 <div className="callout-danger-text">
-                  ยอด "รายรับจริงที่ได้รับแล้ว" ในระบบมาจากการที่นิติบุคคลกดยืนยันอนุมัติสลิป
+                  ยอด "รายรับจริงที่ได้รับแล้ว" ในระบบมาจากการที่เจ้าหน้าที่หอพักกดยืนยันอนุมัติสลิป
                   เจ้าของหอพักควรตรวจทานยอดรวมในระบบกับยอดเงินเข้าในสเตตเมนต์ธนาคารจริงอย่างน้อยสัปดาห์ละ 1 ครั้ง เพื่อป้องกันข้อผิดพลาดทางบัญชี
                 </div>
               </div>
@@ -455,7 +476,7 @@ export default function OwnerManualPage() {
             <section id="ch3" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 3</span>
-                <h2 className="chapter-title">การจัดการประเภทห้องพักและกำหนดอัตราค่าบริการ (Room Types & Utility Rates)</h2>
+                <h2 className="chapter-title">การจัดการประเภทห้องพักและกำหนดอัตราค่าบริการ</h2>
                 <p className="chapter-subtitle">
                   การกำหนดราคาค่าเช่ามาตรฐาน อัตราค่าน้ำ-ค่าไฟต่อหน่วย และข้อมูลสิ่งอำนวยความสะดวก
                 </p>
@@ -479,7 +500,7 @@ export default function OwnerManualPage() {
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 3a: หน้ารายการประเภทห้องพัก (1) ปุ่มเพิ่มประเภทห้องใหม่ (2) การ์ดข้อมูลราคาและค่าน้ำ-ไฟ (3) ปุ่มแก้ไขข้อมูล
+                  ภาพที่ 3a: หน้ารายการประเภทห้องพัก ประกอบด้วยปุ่มเพิ่มประเภทห้องใหม่ การ์ดข้อมูลราคาและค่าน้ำ-ไฟ และปุ่มแก้ไขข้อมูล
                 </div>
               </div>
 
@@ -501,7 +522,7 @@ export default function OwnerManualPage() {
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 3b: หน้าต่างแก้ไขห้องพัก (1) ราคาค่าเช่าฐาน (2) รายการสิ่งอำนวยความสะดวก (3) ปุ่มบันทึกข้อมูล
+                  ภาพที่ 3b: หน้าต่างแก้ไขห้องพัก ประกอบด้วยราคาค่าเช่าฐาน รายการสิ่งอำนวยความสะดวก และปุ่มบันทึกข้อมูล
                 </div>
               </div>
 
@@ -551,7 +572,7 @@ export default function OwnerManualPage() {
             <section id="ch4" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 4</span>
-                <h2 className="chapter-title">การบริหารจัดการบัญชีเจ้าหน้าที่นิติบุคคล (Staff Accounts & Access Management)</h2>
+                <h2 className="chapter-title">การบริหารจัดการบัญชีเจ้าหน้าที่หอพัก</h2>
                 <p className="chapter-subtitle">
                   การสร้างบัญชีผู้ใช้งานใหม่ กำหนดบทบาท มอบสิทธิ์การเข้าถึง และระงับบัญชีเมื่อพ้นสภาพ
                 </p>
@@ -563,19 +584,19 @@ export default function OwnerManualPage() {
                   onClick={() =>
                     setLightboxImg({
                       src: "/manual/images/owner/04a_staff_accounts_list.png",
-                      caption: "หน้ารายชื่อเจ้าหน้าที่นิติบุคคลและตำแหน่งงาน",
+                      caption: "หน้ารายชื่อเจ้าหน้าที่หอพักและตำแหน่งงาน",
                     })
                   }
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/manual/images/owner/04a_staff_accounts_list.png" alt="หน้ารายชื่อเจ้าหน้าที่นิติบุคคล" />
+                  <img src="/manual/images/owner/04a_staff_accounts_list.png" alt="หน้ารายชื่อเจ้าหน้าที่หอพัก" />
                   <div className="screenshot-hover-hint">
                     <Maximize2 size={13} />
                     <span>คลิกเพื่อขยายภาพ</span>
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 4a: หน้ารายชื่อบัญชี Staff (1) ปุ่มเพิ่มบัญชี Staff ใหม่ (2) รายชื่อและตำแหน่งงาน (3) ป้ายสิทธิ์ระดับบัญชี
+                  ภาพที่ 4a: หน้ารายชื่อบัญชีเจ้าหน้าที่ ประกอบด้วยปุ่มเพิ่มบัญชีใหม่ รายชื่อ ตำแหน่งงาน และระดับสิทธิ์
                 </div>
               </div>
 
@@ -585,19 +606,19 @@ export default function OwnerManualPage() {
                   onClick={() =>
                     setLightboxImg({
                       src: "/manual/images/owner/04b_staff_create_modal.png",
-                      caption: "หน้าต่างเพิ่มบัญชีพนักงานนิติบุคคลใหม่",
+                      caption: "หน้าต่างเพิ่มบัญชีเจ้าหน้าที่หอพักใหม่",
                     })
                   }
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/manual/images/owner/04b_staff_create_modal.png" alt="หน้าต่างเพิ่มบัญชีพนักงานใหม่" />
+                  <img src="/manual/images/owner/04b_staff_create_modal.png" alt="หน้าต่างเพิ่มบัญชีเจ้าหน้าที่ใหม่" />
                   <div className="screenshot-hover-hint">
                     <Maximize2 size={13} />
                     <span>คลิกเพื่อขยายภาพ</span>
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 4b: หน้าต่างสร้าง Staff ใหม่ (1) ข้อมูลพนักงานและอีเมล (2) เช็กบ็อกซ์มอบสิทธิ์ Owner (3) ปุ่มยืนยันสร้างบัญชี
+                  ภาพที่ 4b: หน้าต่างสร้างบัญชีเจ้าหน้าที่ใหม่ ประกอบด้วยข้อมูลพนักงาน ตัวเลือกมอบสิทธิ์เจ้าของหอพัก และปุ่มยืนยันสร้างบัญชี
                 </div>
               </div>
 
@@ -605,7 +626,7 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>1</span>
                   <div>
-                    <strong>คลิกปุ่ม "เพิ่มบัญชี Staff ใหม่"</strong>
+                    <strong>คลิกปุ่ม "เพิ่มบัญชีเจ้าหน้าที่ใหม่"</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       เปิดหน้าต่างสร้างบัญชี กรอกชื่อ-นามสกุล เบอร์โทรศัพท์ อีเมลล็อกอิน และรหัสผ่านเริ่มต้น (เช่น staff1234)
                     </div>
@@ -616,16 +637,16 @@ export default function OwnerManualPage() {
                   <div>
                     <strong>ระบุตำแหน่งงานและหน้าที่รับผิดชอบ</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      เลือกหรือพิมพ์ตำแหน่ง เช่น "ผู้จัดการนิติบุคคล", "ช่างประจำอาคาร" หรือ "เจ้าหน้าที่ธุรการ"
+                      เลือกหรือพิมพ์ตำแหน่ง เช่น "ผู้จัดการหอพัก", "ช่างประจำอาคาร" หรือ "เจ้าหน้าที่ธุรการ"
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>3</span>
                   <div>
-                    <strong>การมอบสิทธิ์ระดับเจ้าของหอพัก (Owner Flag)</strong>
+                    <strong>การมอบสิทธิ์ระดับเจ้าของหอพัก</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      หากติ๊กถูกที่ช่อง "มอบสิทธิ์เจ้าของหอพัก (is_owner = true)" บัญชีนั้นจะสามารถเข้าถึงเมนูการเงินและจัดการ Staff ได้เหมือนเจ้าของ
+                      หากทำเครื่องหมายเลือกที่ช่อง "มอบสิทธิ์เจ้าของหอพัก" บัญชีนั้นจะสามารถเข้าถึงเมนูการเงินและจัดการบัญชีเจ้าหน้าที่ได้เหมือนเจ้าของ
                     </div>
                   </div>
                 </div>
@@ -634,11 +655,11 @@ export default function OwnerManualPage() {
               <div className="callout-danger">
                 <div className="callout-danger-header">
                   <AlertTriangle size={16} />
-                  <span>ข้อควรระวังสำคัญ: การมอบสิทธิ์ระดับเจ้าของ (Owner Privileges)</span>
+                  <span>ข้อควรระวังสำคัญ: การมอบสิทธิ์ระดับเจ้าของ</span>
                 </div>
                 <div className="callout-danger-text">
-                  ห้ามมอบสิทธิ์ระดับเจ้าของหอพัก (Owner) ให้แก่พนักงานทั่วไปโดยเด็ดขาด ควรมอบให้เฉพาะหุ้นส่วนหรือทายาทผู้ร่วมบริหารเท่านั้น
-                  เนื่องจากผู้ถือสิทธิ์ Owner สามารถดูข้อมูลการเงินเชิงลึกและลบบัญชีพนักงานอื่นได้
+                  ห้ามมอบสิทธิ์ระดับเจ้าของหอพักให้แก่พนักงานทั่วไปโดยเด็ดขาด ควรมอบให้เฉพาะหุ้นส่วนหรือทายาทผู้ร่วมบริหารเท่านั้น
+                  เนื่องจากผู้ถือสิทธิ์เจ้าของสามารถดูข้อมูลการเงินเชิงลึกและลบบัญชีพนักงานอื่นได้
                 </div>
               </div>
             </section>
@@ -647,7 +668,7 @@ export default function OwnerManualPage() {
             <section id="ch5" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 5</span>
-                <h2 className="chapter-title">การกำกับดูแลการเงินและการตรวจสอบสลิป (Financial Supervision & Slip Auditing)</h2>
+                <h2 className="chapter-title">การกำกับดูแลการเงินและการตรวจสอบสลิป</h2>
                 <p className="chapter-subtitle">
                   การตรวจสอบประวัติการอนุมัติสลิปย้อนหลัง การตรวจทานใบเสร็จรับเงิน และการป้องกันการทุจริต
                 </p>
@@ -671,7 +692,7 @@ export default function OwnerManualPage() {
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 5: การตรวจสอบการเงิน (1) ตัวกรองตรวจสอบประวัติสลิป (2) รายการอนุมัติยอดเงินและเลขที่ใบเสร็จทางการ
+                  ภาพที่ 5: การตรวจสอบการเงิน ประกอบด้วยตัวกรองตรวจสอบประวัติสลิป และรายการอนุมัติยอดเงินพร้อมเลขที่ใบเสร็จทางการ
                 </div>
               </div>
 
@@ -688,9 +709,9 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>2</span>
                   <div>
-                    <strong>การคลิกดูภาพสลิปย้อนหลัง (Audit Inspection)</strong>
+                    <strong>การคลิกดูภาพสลิปย้อนหลัง</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      คลิกเปิดดูภาพสลิปที่แนบมา เพื่อตรวจเช็ครหัสธุรกรรม (Transaction Ref) และชื่อผู้โอนเงิน
+                      คลิกเปิดดูภาพสลิปที่แนบมา เพื่อตรวจเช็ครหัสอ้างอิงธุรกรรมและชื่อผู้โอนเงิน
                     </div>
                   </div>
                 </div>
@@ -699,7 +720,7 @@ export default function OwnerManualPage() {
                   <div>
                     <strong>การตรวจสอบความถูกต้องของใบเสร็จทางการ</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      ระบบจะกำกับเลขที่ใบเสร็จรับเงิน (Receipt No.) แบบต่อเนื่องอัตโนมัติ สำหรับใช้เป็นหลักฐานประกอบการลงบัญชี
+                      ระบบจะกำกับเลขที่ใบเสร็จรับเงินแบบต่อเนื่องอัตโนมัติ สำหรับใช้เป็นหลักฐานประกอบการลงบัญชี
                     </div>
                   </div>
                 </div>
@@ -708,10 +729,10 @@ export default function OwnerManualPage() {
               <div className="callout-tip">
                 <div className="callout-tip-header">
                   <Info size={16} />
-                  <span>คำแนะนำ: การสุ่มตรวจสลิปประจำสัปดาห์ (Weekly Spot-Check)</span>
+                  <span>คำแนะนำ: การสุ่มตรวจสลิปประจำสัปดาห์</span>
                 </div>
                 <div className="callout-tip-text">
-                  เจ้าของหอพักควรสุ่มตรวจสลิปการโอนเงินที่นิติบุคคลกดอนุมัติไปแล้วสัปดาห์ละ 5-10 รายการ
+                  เจ้าของหอพักควรสุ่มตรวจสลิปการโอนเงินที่เจ้าหน้าที่หอพักกดอนุมัติไปแล้วสัปดาห์ละ 5-10 รายการ
                   โดยนำรหัสอ้างอิงไปตรวจสอบกับประวัติยอดเงินเข้าในบัญชีธนาคารจริง เพื่อสร้างมาตรฐานความโปร่งใสสูงสุด
                 </div>
               </div>
@@ -721,7 +742,7 @@ export default function OwnerManualPage() {
             <section id="ch6" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 6</span>
-                <h2 className="chapter-title">การบริหารสัญญาเช่า เงินประกัน และการเข้าพัก (Tenants, Contracts & Deposits Control)</h2>
+                <h2 className="chapter-title">การบริหารสัญญาเช่า เงินประกัน และการเข้าพัก</h2>
                 <p className="chapter-subtitle">
                   การควบคุมวงเงินประกันความเสียหายรวมของทั้งอาคาร และการบริหารสัญญาเช่าระยะยาว
                 </p>
@@ -731,7 +752,7 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>1</span>
                   <div>
-                    <strong>การดูแลเงินประกันความเสียหาย (Security Deposit Pool)</strong>
+                    <strong>การดูแลเงินประกันความเสียหาย</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       เงินประกันห้องพัก (เช่น 9,000 บาท/ห้อง สำหรับสัญญา 1 ปี) ถือเป็นเงินที่ต้องส่งคืนผู้เช่าเมื่อย้ายออกและตรวจรับห้องเรียบร้อย เจ้าของควรจัดเก็บในบัญชีสำรองแยกต่างหาก
                     </div>
@@ -740,9 +761,9 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>2</span>
                   <div>
-                    <strong>การติดตามสัญญาเช่าที่ใกล้หมดอายุ (Contract Renewal Tracking)</strong>
+                    <strong>การติดตามสัญญาเช่าที่ใกล้หมดอายุ</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      ระบบจะแจ้งเตือนห้องที่มีสัญญาเหลือน้อยกว่า 30 วัน เพื่อให้นิติดำเนินการสอบถามความต้องการต่อสัญญาหรือเตรียมการเปิดรับผู้เช่าใหม่
+                      ระบบจะแจ้งเตือนห้องที่มีสัญญาเหลือน้อยกว่า 30 วัน เพื่อให้เจ้าหน้าที่หอพักดำเนินการสอบถามความต้องการต่อสัญญาหรือเตรียมการเปิดรับผู้เช่าใหม่
                     </div>
                   </div>
                 </div>
@@ -773,9 +794,9 @@ export default function OwnerManualPage() {
             <section id="ch7" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 7</span>
-                <h2 className="chapter-title">การควบคุมงานบำรุงรักษาและการสื่อสารกับผู้เช่า (Maintenance Oversight & Broadcast Control)</h2>
+                <h2 className="chapter-title">การควบคุมงานบำรุงรักษาและการสื่อสารกับผู้เช่า</h2>
                 <p className="chapter-subtitle">
-                  การควบคุมค่าใช้จ่ายในการซ่อมบำรุง และการกำกับดูแลนโยบายการกระจายข่าวสารผ่าน LINE OA
+                  การควบคุมค่าใช้จ่ายในการซ่อมบำรุง และการกำกับดูแลนโยบายการกระจายข่าวสารแก่ผู้พักอาศัย
                 </p>
               </div>
 
@@ -783,7 +804,7 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>1</span>
                   <div>
-                    <strong>การติดตามประสิทธิภาพการซ่อมบำรุง (Maintenance SLA Monitoring)</strong>
+                    <strong>การติดตามประสิทธิภาพการซ่อมบำรุง</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       ตรวจสอบจำนวนงานซ่อมที่ค้างอยู่ เวลาเฉลี่ยในการเข้าแก้ไขของช่างเทคนิค และรายการอุปกรณ์ที่ต้องเปลี่ยนบ่อยเป็นพิเศษ
                     </div>
@@ -794,16 +815,16 @@ export default function OwnerManualPage() {
                   <div>
                     <strong>การอนุมัติงบประมาณซ่อมแซมส่วนกลาง</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      กรณีงานซ่อมใหญ่ที่มีมูลค่าเกินวงเงินอำนาจนิติบุคคล (เช่น มอเตอร์ปั๊มน้ำอาคาร, หม้อแปลงไฟฟ้า, ลิฟต์โดยสาร) ต้องได้รับการอนุมัติจากเจ้าของผ่านระบบก่อนสั่งซื้ออะไหล่
+                      กรณีงานซ่อมใหญ่ที่มีมูลค่าเกินวงเงินอำนาจเจ้าหน้าที่หอพัก (เช่น มอเตอร์ปั๊มน้ำอาคาร, หม้อแปลงไฟฟ้า, ลิฟต์โดยสาร) ต้องได้รับการอนุมัติจากเจ้าของผ่านระบบก่อนสั่งซื้ออะไหล่
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>3</span>
                   <div>
-                    <strong>นโยบายการบรอดแคสต์ประกาศแจ้งเตือน</strong>
+                    <strong>นโยบายการส่งประกาศแจ้งเตือน</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      กำกับดูแลให้นิติบุคคลส่งบรอดแคสต์ LINE OA เฉพาะกรณีจำเป็นจริง เช่น แจ้งปิดระบบน้ำ-ไฟ หรือแจ้งพายุเข้า เพื่อป้องกันไม่ให้ผู้เช่ารำคาญและบล็อก LINE OA ของหอพัก
+                      กำกับดูแลให้เจ้าหน้าที่หอพักส่งประกาศแจ้งเตือนเฉพาะกรณีจำเป็นจริง เช่น แจ้งปิดระบบน้ำ-ไฟ หรือแจ้งพายุเข้า เพื่อป้องกันไม่ให้ผู้เช่ารำคาญ
                     </div>
                   </div>
                 </div>
@@ -812,7 +833,7 @@ export default function OwnerManualPage() {
               <div className="callout-tip">
                 <div className="callout-tip-header">
                   <Info size={16} />
-                  <span>คำแนะนำ: การจัดทำแผนบำรุงรักษาเชิงป้องกัน (Preventive Maintenance)</span>
+                  <span>คำแนะนำ: การจัดทำแผนบำรุงรักษาเชิงป้องกัน</span>
                 </div>
                 <div className="callout-tip-text">
                   เจ้าของควรจัดรอบตรวจเช็คระบบไฟฟ้า ปั๊มน้ำ ถังพักน้ำ และล้างแอร์ส่วนกลางทุกๆ 6 เดือน
@@ -825,9 +846,9 @@ export default function OwnerManualPage() {
             <section id="ch8" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 8</span>
-                <h2 className="chapter-title">แนวปฏิบัติและข้อควรระวังสำคัญสำหรับเจ้าของหอพัก (Executive Governance & Golden Rules)</h2>
+                <h2 className="chapter-title">แนวปฏิบัติและข้อควรระวังสำคัญสำหรับเจ้าของหอพัก</h2>
                 <p className="chapter-subtitle">
-                  4 กฎเหล็กด้านความปลอดภัย การเงิน และกฎหมายเพื่อการบริหารจัดการอาคารอย่างยั่งยืน
+                  4 กฎสำคัญด้านความปลอดภัย การเงิน และกฎหมายเพื่อการบริหารจัดการอาคารอย่างยั่งยืน
                 </p>
               </div>
 
@@ -835,7 +856,7 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>1</span>
                   <div>
-                    <strong>กฎข้อที่ 1: การรักษาความปลอดภัยของบัญชีระดับ Owner</strong>
+                    <strong>กฎข้อที่ 1: การรักษาความปลอดภัยของบัญชีระดับเจ้าของ</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       รหัสผ่านบัญชีเจ้าของต้องมีความยาวไม่น้อยกว่า 8 ตัวอักษร ผสมตัวอักษรพิมพ์ใหญ่ พิมพ์เล็ก ตัวเลข และสัญลักษณ์ ห้ามจดรหัสผ่านไว้ในที่เปิดเผย หรือแชร์บัญชีร่วมกับเจ้าหน้าที่ธุรการ
                     </div>
@@ -853,7 +874,7 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>3</span>
                   <div>
-                    <strong>กฎข้อที่ 3: การจัดสรรเงินกองทุนสำรองบำรุงรักษา (Sinking Fund)</strong>
+                    <strong>กฎข้อที่ 3: การจัดสรรเงินกองทุนสำรองบำรุงรักษา</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       ควรกันเงินสำรอง 5% - 10% ของรายรับสุทธิในแต่ละเดือนเข้าบัญชีกองทุนสำรอง สำหรับการทาสีอาคารใหม่ การเปลี่ยนเครื่องปรับอากาศเมื่อครบอายุ และการปรับปรุงภูมิทัศน์
                     </div>
@@ -862,7 +883,7 @@ export default function OwnerManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num" style={{ background: "#7e22ce" }}>4</span>
                   <div>
-                    <strong>กฎข้อที่ 4: การปฏิบัติตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)</strong>
+                    <strong>กฎข้อที่ 4: การปฏิบัติตามกฎหมายคุ้มครองข้อมูลส่วนบุคคล</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       ภาพถ่ายบัตรประชาชน เอกสารสัญญาเช่า และเบอร์โทรศัพท์ของผู้พักอาศัย ถือเป็นข้อมูลส่วนบุคคลที่ต้องได้รับการคุ้มครอง ห้ามนำไปเผยแพร่ภายนอกโดยไม่ได้รับความยินยอม
                     </div>
@@ -876,7 +897,7 @@ export default function OwnerManualPage() {
                   <span>คำเตือนระดับผู้บริหาร: การระงับสิทธิ์พนักงานที่สิ้นสุดสัญญาจ้างทันที</span>
                 </div>
                 <div className="callout-danger-text">
-                  เมื่อพนักงานนิติบุคคลหรือช่างเทคนิคลาออก เจ้าของหอพักต้องเข้ามาที่เมนู "จัดการบัญชี Staff"
+                  เมื่อเจ้าหน้าที่หอพักหรือช่างเทคนิคลาออก เจ้าของหอพักต้องเข้ามาที่เมนู "จัดการบัญชีเจ้าหน้าที่"
                   และทำการระงับหรือลบบัญชีของพนักงานผู้นั้นทันทีในวันสุดท้ายของการทำงาน เพื่อป้องกันการเข้าถึงข้อมูลระบบโดยไม่ได้รับอนุญาต
                 </div>
               </div>
@@ -886,7 +907,7 @@ export default function OwnerManualPage() {
             <section id="ch9" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#7e22ce" }}>บทที่ 9</span>
-                <h2 className="chapter-title">คำถามที่พบบ่อยสำหรับเจ้าของหอพัก (Executive FAQ)</h2>
+                <h2 className="chapter-title">คำถามที่พบบ่อยสำหรับเจ้าของหอพัก</h2>
                 <p className="chapter-subtitle">
                   รวม 6 ข้อสงสัยเชิงบริหาร การเงิน ภาษี และแนวทางจัดการความเสี่ยง
                 </p>
@@ -903,10 +924,10 @@ export default function OwnerManualPage() {
                 >
                   <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <HelpCircle size={17} style={{ color: "#7e22ce" }} />
-                    <span>คำถามที่ 1: หากเจ้าของต้องการมอบหมายให้นิติบุคคลจัดการงานแทน สามารถตั้งสิทธิ์อย่างไร?</span>
+                    <span>คำถามที่ 1: หากเจ้าของต้องการมอบหมายให้เจ้าหน้าที่หอพักจัดการงานแทน สามารถตั้งสิทธิ์อย่างไร?</span>
                   </div>
                   <div style={{ color: "#475569", fontSize: "0.88rem", lineHeight: 1.6, paddingLeft: "1.6rem" }}>
-                    <strong>คำตอบ:</strong> เจ้าของสามารถสร้างบัญชี Staff ทั่วไปให้นิติบุคคล โดยไม่ต้องติ๊กช่อง "มอบสิทธิ์เจ้าของหอพัก" นิติบุคคลจะสามารถออกบิล ตรวจสลิป ดูแลงานซ่อม และจัดผังห้องได้ครบถ้วน แต่นิติบุคคลจะไม่สามารถดูรายงานผลประกอบการการเงิน และไม่สามารถแก้ไขประเภทห้องพักหรือลบบัญชีพนักงานได้
+                    <strong>คำตอบ:</strong> เจ้าของสามารถสร้างบัญชีเจ้าหน้าที่ทั่วไป โดยไม่ต้องเลือกช่อง "มอบสิทธิ์เจ้าของหอพัก" เจ้าหน้าที่หอพักจะสามารถออกบิล ตรวจสลิป ดูแลงานซ่อม และจัดผังห้องได้ครบถ้วน แต่จะไม่สามารถดูรายงานผลประกอบการการเงิน และไม่สามารถแก้ไขประเภทห้องพักหรือลบบัญชีผู้ใช้งานอื่นได้
                   </div>
                 </div>
 
@@ -954,10 +975,10 @@ export default function OwnerManualPage() {
                 >
                   <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <HelpCircle size={17} style={{ color: "#7e22ce" }} />
-                    <span>คำถามที่ 4: เมื่อพนักงานนิติบุคคลลาออก เจ้าของควรดำเนินการเกี่ยวกับบัญชีในระบบอย่างไร?</span>
+                    <span>คำถามที่ 4: เมื่อเจ้าหน้าที่หอพักลาออก เจ้าของควรดำเนินการเกี่ยวกับบัญชีในระบบอย่างไร?</span>
                   </div>
                   <div style={{ color: "#475569", fontSize: "0.88rem", lineHeight: 1.6, paddingLeft: "1.6rem" }}>
-                    <strong>คำตอบ:</strong> ให้เจ้าของเข้าสู่ระบบด้วยบัญชี Owner ไปที่เมนู "จัดการบัญชี Staff" ค้นหาชื่อพนักงานที่ลาออก แล้วคลิกปุ่ม "ลบบัญชี" ระบบจะตัดสิทธิ์การเข้าใช้งานทันที ป้องกันไม่ให้อดีตพนักงานล็อกอินเข้าระบบได้อีก
+                    <strong>คำตอบ:</strong> ให้เจ้าของเข้าสู่ระบบด้วยบัญชีเจ้าของ ไปที่เมนู "จัดการบัญชีเจ้าหน้าที่" ค้นหาชื่อพนักงานที่ลาออก แล้วคลิกปุ่ม "ลบบัญชี" ระบบจะตัดสิทธิ์การเข้าใช้งานทันที ป้องกันไม่ให้อดีตพนักงานล็อกอินเข้าระบบได้อีก
                   </div>
                 </div>
 
@@ -971,7 +992,7 @@ export default function OwnerManualPage() {
                 >
                   <div style={{ fontWeight: 700, color: "#0f172a", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <HelpCircle size={17} style={{ color: "#7e22ce" }} />
-                    <span>คำถามที่ 5: สามารถส่งออกข้อมูลรายงานการเงิน (Export Report) เพื่อนำไปยื่นบัญชีได้อย่างไร?</span>
+                    <span>คำถามที่ 5: สามารถส่งออกข้อมูลรายงานการเงิน เพื่อนำไปยื่นบัญชีได้อย่างไร?</span>
                   </div>
                   <div style={{ color: "#475569", fontSize: "0.88rem", lineHeight: 1.6, paddingLeft: "1.6rem" }}>
                     <strong>คำตอบ:</strong> ในหน้ารายงานผลประกอบการ (`/staff/owner/analytics`) เจ้าของสามารถกดปุ่ม "สั่งพิมพ์" หรือ "พิมพ์เป็น PDF" ในเบราว์เซอร์ เพื่อพิมพ์รายงานสรุปผลประกอบการประจำเดือน และสามารถพิมพ์ใบเสร็จรับเงินทางการรายห้องเพื่อใช้เป็นเอกสารประกอบการลงบัญชีได้ครบถ้วน
@@ -991,7 +1012,7 @@ export default function OwnerManualPage() {
                     <span>คำถามที่ 6: กรณีผู้เช่าค้างชำระค่าเช่าเกินกำหนด ระบบมีมาตรการช่วยเหลือเจ้าของอย่างไร?</span>
                   </div>
                   <div style={{ color: "#475569", fontSize: "0.88rem", lineHeight: 1.6, paddingLeft: "1.6rem" }}>
-                    <strong>คำตอบ:</strong> ระบบจะแสดงยอดค้างชำระเป็นตัวเลขสีแดงในแดชบอร์ด และขึ้นสถานะ "ค้างชำระ" ที่การ์ดห้องพักในหน้าผังห้อง นิติบุคคลสามารถกดออกหนังสือแจ้งเตือนชำระเงิน และสามารถส่งข้อความแจ้งเตือนตรงเข้า LINE ของผู้เช่าห้องดังกล่าวได้ทันที
+                    <strong>คำตอบ:</strong> ระบบจะแสดงยอดค้างชำระเป็นตัวเลขสีแดงในแดชบอร์ด และขึ้นสถานะ "ค้างชำระ" ที่การ์ดห้องพักในหน้าผังห้อง เจ้าหน้าที่หอพักสามารถกดออกหนังสือแจ้งเตือนชำระเงิน และสามารถส่งข้อความแจ้งเตือนตรงเข้า LINE ของผู้เช่าห้องดังกล่าวได้ทันที
                   </div>
                 </div>
               </div>

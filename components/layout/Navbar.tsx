@@ -12,7 +12,7 @@ import {
   Menu,
   X,
   BedDouble,
-  Grid3X3,
+  MapPin,
   Sparkles,
   Phone,
   ChevronRight,
@@ -36,6 +36,11 @@ export const Navbar: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
+  // ซ่อน Navbar หลักในหน้าเดินจดมิเตอร์บนมือถือ เพื่อให้เป็น Fullscreen Mobile UI 100%
+  if (pathname === "/staff/meter-reading") {
+    return null;
+  }
+
   return (
     <header
       className="navbar-header"
@@ -43,13 +48,13 @@ export const Navbar: React.FC = () => {
         position: "sticky",
         top: 0,
         zIndex: 999,
-        height: 56,
-        minHeight: 56,
-        maxHeight: 56,
-        background: "rgba(255, 255, 255, 0.94)",
+        height: 58,
+        minHeight: 58,
+        maxHeight: 58,
+        background: "rgba(250, 248, 245, 0.92)",
         backdropFilter: "blur(16px)",
         WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(226, 232, 240, 0.8)",
+        borderBottom: "1px solid rgba(15, 23, 42, 0.08)",
         display: "flex",
         alignItems: "center",
         boxSizing: "border-box",
@@ -59,14 +64,14 @@ export const Navbar: React.FC = () => {
         className="navbar-inner"
         style={{
           width: "100%",
-          maxWidth: 1200,
+          maxWidth: 1280,
           margin: "0 auto",
           padding: "0 1.25rem",
           height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          boxSizing: borderBoxOrUndefined(),
+          boxSizing: "border-box",
         }}
       >
         {/* Brand Logo with Horizontal Emblem & Typography */}
@@ -87,15 +92,15 @@ export const Navbar: React.FC = () => {
             src="/logo-icon.png"
             alt="The Saranrom Logo"
             className="brand-logo-img"
-            width={34}
-            height={34}
+            width={44}
+            height={44}
             style={{
-              width: 34,
-              height: 34,
-              maxWidth: 34,
-              maxHeight: 34,
+              width: 44,
+              height: 44,
+              maxWidth: 44,
+              maxHeight: 44,
               objectFit: "contain",
-              borderRadius: 6,
+              borderRadius: 8,
               flexShrink: 0,
               display: "block",
             }}
@@ -112,7 +117,7 @@ export const Navbar: React.FC = () => {
             <span
               className="brand-name"
               style={{
-                fontSize: "0.92rem",
+                fontSize: "0.95rem",
                 fontWeight: 800,
                 letterSpacing: "-0.01em",
                 color: "#0f172a",
@@ -125,7 +130,7 @@ export const Navbar: React.FC = () => {
             <span
               className="brand-sub"
               style={{
-                fontSize: "0.6rem",
+                fontSize: "0.62rem",
                 letterSpacing: "0.01em",
                 color: "#64748b",
                 fontWeight: 500,
@@ -159,18 +164,20 @@ export const Navbar: React.FC = () => {
             <Link href="/#rooms" className="nav-link">
               ห้องพัก & อัตราเช่า
             </Link>
-            <Link href="/#matrix" className="nav-link">
-              ผังห้องว่าง
-            </Link>
             <Link href="/#amenities" className="nav-link">
               สิ่งอำนวยความสะดวก
+            </Link>
+            <Link href="/#location" className="nav-link">
+              ทำเลที่ตั้ง
             </Link>
             <Link href="/#contact" className="nav-link">
               ติดต่อสอบถาม
             </Link>
-            <Link href="/manual" className="nav-link">
-              คู่มือการใช้งาน
-            </Link>
+            {isAuthenticated && (
+              <Link href="/manual" className="nav-link">
+                คู่มือการใช้งาน
+              </Link>
+            )}
           </div>
 
           {/* Desktop User Auth Buttons */}
@@ -230,7 +237,7 @@ export const Navbar: React.FC = () => {
                     }}
                   >
                     <ShieldCheck size={14} />
-                    <span>{isOwner ? "แดชบอร์ดเจ้าของ" : "ระบบนิติบุคคล"}</span>
+                    <span>{isOwner ? "หน้าหลักเจ้าของ" : "ระบบเจ้าหน้าที่"}</span>
                   </Link>
                 )}
 
@@ -290,8 +297,18 @@ export const Navbar: React.FC = () => {
           className="mobile-toggle-btn"
           aria-label={mobileMenuOpen ? "ปิดเมนู" : "เปิดเมนู"}
           aria-expanded={mobileMenuOpen}
+          style={{
+            minWidth: 44,
+            minHeight: 44,
+            width: 44,
+            height: 44,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 0,
+          }}
         >
-          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
@@ -315,16 +332,16 @@ export const Navbar: React.FC = () => {
             </Link>
 
             <Link
-              href="/#matrix"
+              href="/#location"
               onClick={() => setMobileMenuOpen(false)}
               className="mobile-nav-item"
             >
               <div className="item-icon-wrap">
-                <Grid3X3 size={18} />
+                <MapPin size={18} />
               </div>
               <div className="item-text">
-                <span className="item-title">ผังห้องว่างเรียลไทม์</span>
-                <span className="item-desc">ตรวจสถานะห้องพักว่างและทำเลแต่ละชั้น</span>
+                <span className="item-title">ทำเลที่ตั้ง</span>
+                <span className="item-desc">สุขุมวิท 71 ใกล้ BTS พระโขนง 3 นาที</span>
               </div>
               <ChevronRight size={16} className="item-arrow" />
             </Link>
@@ -354,25 +371,27 @@ export const Navbar: React.FC = () => {
               </div>
               <div className="item-text">
                 <span className="item-title">ติดต่อสอบถาม</span>
-                <span className="item-desc">แผนที่ เบอร์โทร และ LINE Official</span>
+                <span className="item-desc">แผนที่ เบอร์โทร และ LINE</span>
               </div>
               <ChevronRight size={16} className="item-arrow" />
             </Link>
 
-            <Link
-              href="/manual"
-              onClick={() => setMobileMenuOpen(false)}
-              className="mobile-nav-item"
-            >
-              <div className="item-icon-wrap">
-                <BookOpen size={18} />
-              </div>
-              <div className="item-text">
-                <span className="item-title">คู่มือการใช้งาน</span>
-                <span className="item-desc">คู่มือระบบผู้เช่า เจ้าหน้าที่ และผู้บริหาร</span>
-              </div>
-              <ChevronRight size={16} className="item-arrow" />
-            </Link>
+            {isAuthenticated && (
+              <Link
+                href="/manual"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mobile-nav-item"
+              >
+                <div className="item-icon-wrap">
+                  <BookOpen size={18} />
+                </div>
+                <div className="item-text">
+                  <span className="item-title">คู่มือการใช้งาน</span>
+                  <span className="item-desc">คู่มือระบบผู้เช่า เจ้าหน้าที่ และผู้บริหาร</span>
+                </div>
+                <ChevronRight size={16} className="item-arrow" />
+              </Link>
+            )}
           </div>
 
           {/* Mobile Auth Section */}
@@ -392,7 +411,7 @@ export const Navbar: React.FC = () => {
                     className="mobile-btn-portal"
                   >
                     {currentUser.role === "rental" ? <KeyRound size={16} /> : <ShieldCheck size={16} />}
-                    <span>เข้าสู่แดชบอร์ด</span>
+                    <span>ไปหน้าหลัก</span>
                   </Link>
                   <button onClick={handleLogout} className="mobile-btn-logout">
                     <LogOut size={16} />

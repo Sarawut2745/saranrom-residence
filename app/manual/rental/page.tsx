@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDormitory } from "@/lib/store/dormitory-context";
 import "../manual.css";
 import {
   BookOpen,
@@ -17,6 +19,11 @@ import {
   X,
   PhoneCall,
   HelpCircle,
+  Smartphone,
+  Receipt,
+  Wrench,
+  Menu,
+  Home,
 } from "lucide-react";
 
 interface ManualChapter {
@@ -29,66 +36,90 @@ interface ManualChapter {
 
 const chapters: ManualChapter[] = [
   {
+    id: "quickstart",
+    number: "⭐",
+    title: "คู่มือฉบับเข้าใจง่ายที่สุด (สำหรับผู้เช่าห้องพัก)",
+    shortTitle: "⭐ สำหรับผู้เริ่มต้น (อ่านง่าย)",
+    description: "จ่ายค่าเช่าและแจ้งซ่อมใน 3 ก้าว ไม่ใช้ศัพท์เทคนิค เข้าใจง่ายที่สุด",
+  },
+  {
     id: "ch1",
     number: "บทที่ 1",
-    title: "การเข้าสู่ระบบผู้เช่า (Login)",
+    title: "การเข้าสู่ระบบผู้เช่า",
     shortTitle: "1. เข้าสู่ระบบ",
     description: "ขั้นตอนการเข้าใช้งานระบบด้วยอีเมลและรหัสผ่านของผู้เช่า",
   },
   {
     id: "ch2",
     number: "บทที่ 2",
-    title: "หน้าหลักผู้เช่า (Rental Dashboard)",
+    title: "หน้าหลักผู้เช่า",
     shortTitle: "2. หน้าหลักแดชบอร์ด",
     description: "การดูภาพรวมห้องพัก บิลค้างชำระ และเมนูด่วน",
   },
   {
     id: "ch3",
     number: "บทที่ 3",
-    title: "การชำระเงินและบิลรายเดือน (Bills & Payments)",
-    shortTitle: "3. การชำระบิล & QR",
+    title: "การชำระเงินและบิลรายเดือน",
+    shortTitle: "3. ชำระบิลและ QR",
     description: "ดูรายการบิล สแกน QR PromptPay อัปโหลดสลิป และรับใบเสร็จ",
   },
   {
     id: "ch4",
     number: "บทที่ 4",
-    title: "การแจ้งซ่อมบำรุงห้องพัก (Maintenance Requests)",
+    title: "การแจ้งซ่อมบำรุงห้องพัก",
     shortTitle: "4. การแจ้งซ่อม",
     description: "แจ้งปัญหาเครื่องใช้ไฟฟ้า น้ำรั่ว แอร์ พร้อมแนบรูปถ่าย",
   },
   {
     id: "ch5",
     number: "บทที่ 5",
-    title: "การติดตามประกาศหอพัก (Announcements)",
+    title: "การติดตามประกาศหอพัก",
     shortTitle: "5. ประกาศหอพัก",
     description: "รับทราบข่าวสารสำคัญ ล้างถังพักน้ำ กำจัดแมลง และช่องทาง LINE OA",
   },
   {
     id: "ch6",
     number: "บทที่ 6",
-    title: "ข้อมูลผู้เช่าและสัญญาเช่า (Profile & Contract)",
+    title: "ข้อมูลผู้เช่าและสัญญาเช่า",
     shortTitle: "6. สัญญาเช่า",
     description: "ตรวจสอบระยะเวลาสัญญาเช่า เงินประกัน และเบอร์ติดต่อฉุกเฉิน",
   },
   {
     id: "ch7",
     number: "บทที่ 7",
-    title: "กฎระเบียบและข้อควรระวังสำคัญ (Golden Rules)",
+    title: "กฎระเบียบและข้อควรระวังสำคัญ",
     shortTitle: "7. ข้อควรระวัง",
     description: "ข้อกำหนดและระเบียบหอพักเพื่อความปลอดภัยและความสงบเรียบร้อย",
   },
   {
     id: "ch8",
     number: "บทที่ 8",
-    title: "คำถามที่พบบ่อย (Frequently Asked Questions - FAQ)",
-    shortTitle: "8. คำถามที่พบบ่อย (FAQ)",
+    title: "คำถามที่พบบ่อย",
+    shortTitle: "8. คำถามที่พบบ่อย",
     description: "รวมข้อสงสัยและคำถามที่พบบ่อยเกี่ยวกับการใช้งานระบบและการพักอาศัย",
   },
 ];
 
 export default function RentalManualPage() {
-  const [activeChapter, setActiveChapter] = useState("ch1");
+  const router = useRouter();
+  const { currentUser, currentRentalProfile, isLoading } = useDormitory();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!currentUser) {
+        router.replace("/login");
+      } else if (currentUser.role !== "rental" && !currentRentalProfile) {
+        router.replace("/manual");
+      }
+    }
+  }, [isLoading, currentUser, currentRentalProfile, router]);
+
+  const [activeChapter, setActiveChapter] = useState("quickstart");
   const [lightboxImg, setLightboxImg] = useState<{ src: string; caption: string } | null>(null);
+
+  if (isLoading || !currentUser || (currentUser.role !== "rental" && !currentRentalProfile)) {
+    return <div style={{ minHeight: "100vh" }} />;
+  }
 
   const scrollToSection = (id: string) => {
     setActiveChapter(id);
@@ -143,7 +174,7 @@ export default function RentalManualPage() {
             </button>
             <a href="/manual/manual-rental.pdf" download className="manual-btn-primary" style={{ padding: "0.45rem 1rem", fontSize: "0.82rem" }}>
               <Download size={15} />
-              <span>ดาวน์โหลด PDF (3.2 MB)</span>
+              <span>ดาวน์โหลด PDF (3.3 MB)</span>
             </a>
           </div>
         </div>
@@ -153,13 +184,13 @@ export default function RentalManualPage() {
           <div>
             <div className="manual-tag manual-tag-banner">
               <BookOpen size={13} />
-              <span>USER MANUAL - VOLUME 1: RENTAL PORTAL</span>
+              <span>คู่มือการใช้งานระบบ - เล่มที่ 1: สำหรับผู้เช่าห้องพัก</span>
             </div>
             <h1 className="manual-hero-title-light">
-              คู่มือการใช้งานระบบสำหรับผู้เช่าห้องพัก
+              คู่มือการใช้งานระบบบริการตนเองสำหรับผู้เช่า
             </h1>
             <p className="manual-hero-desc-light">
-              เดอะ สราญรมย์ เรสซิเดนซ์ (The Saranrom Residence & Apartment)
+              เดอะ สราญรมย์ เรสซิเดนซ์
               รวบรวมขั้นตอนการใช้งานตั้งแต่การเข้าสู่ระบบ ตรวจสอบบิล ชำระเงินผ่าน QR PromptPay อัปโหลดสลิป แจ้งซ่อมบำรุง
               และตรวจสอบสัญญาเช่าอย่างละเอียด พร้อมภาพประกอบจริงทุกขั้นตอน
             </p>
@@ -178,7 +209,7 @@ export default function RentalManualPage() {
           {/* Sticky Sidebar Navigation */}
           <div className="rental-sidebar">
             <div className="rental-sidebar-title">
-              สารบัญเนื้อหา (Chapters)
+              สารบัญเนื้อหา
             </div>
             <nav className="rental-sidebar-menu">
               {chapters.map((ch) => (
@@ -196,7 +227,7 @@ export default function RentalManualPage() {
             <div className="rental-sidebar-contact">
               <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0f172a", display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.3rem" }}>
                 <PhoneCall size={14} style={{ color: "#065f46" }} />
-                <span>ติดต่อฝ่ายนิติบุคคล</span>
+                <span>ติดต่อสำนักงานหอพัก</span>
               </div>
               <p style={{ fontSize: "0.75rem", color: "#64748b", lineHeight: 1.5, margin: 0 }}>
                 โทร: 02-999-8888
@@ -208,11 +239,115 @@ export default function RentalManualPage() {
 
           {/* Chapters Content */}
           <div className="rental-content-area">
+            {/* SPECIAL QUICK START: FOR BEGINNERS */}
+            <section
+              id="quickstart"
+              className="chapter-box"
+              style={{
+                background: "linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%)",
+                border: "2px solid rgba(79, 70, 229, 0.25)",
+                borderRadius: "18px",
+                padding: "2rem",
+                marginBottom: "2.5rem",
+                boxShadow: "0 4px 20px -2px rgba(79, 70, 229, 0.08)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+                <div style={{ width: 42, height: 42, borderRadius: "12px", background: "#4f46e5", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <BookOpen size={22} />
+                </div>
+                <div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.2rem 0.55rem", background: "rgba(79, 70, 229, 0.12)", color: "#4338ca", borderRadius: "6px", fontSize: "0.74rem", fontWeight: 700, marginBottom: "0.25rem" }}>
+                    ⭐ ฉบับเข้าใจง่ายที่สุด
+                  </div>
+                  <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                    คู่มือฉบับเข้าใจง่ายที่สุด (สำหรับผู้เช่าห้องพัก)
+                  </h2>
+                  <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "0.2rem 0 0" }}>
+                    จ่ายค่าเช่าและแจ้งซ่อมได้ง่ายๆ ทีละก้าว ไม่ใช้ศัพท์เทคนิค แม้เพิ่งเริ่มใช้สมาร์ตโฟนก็ทำได้ทันที
+                  </p>
+                </div>
+              </div>
+
+              {/* 1. Phone Concept */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Smartphone size={18} style={{ color: "#4f46e5" }} />
+                  <span>1. ระบบนี้เหมือนมี "กระเป๋าสตางค์และสมุดบริการห้องพัก" อยู่ในมือถือ</span>
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.6, margin: 0 }}>
+                  ผู้เช่าสามารถเปิดดูบิลค่าเช่า สแกนจ่ายเงินผ่านแอปพลิเคชันธนาคาร และถ่ายรูปแจ้งซ่อมได้จากทุกที่ ไม่ต้องเดินไปสำนักงานหอพักให้เหนื่อย เมื่อเปิดบนมือถือ ข้อความจะเรียงเป็นการ์ดอ่านง่าย และมีปุ่มกดขนาดใหญ่แตะสะดวก
+                </p>
+              </div>
+
+              {/* 2. Pay Bill Step-by-Step */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#065f46", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Receipt size={18} />
+                  <span>2. วิธีดูบิลและชำระค่าห้องผ่านมือถือ (ทำทีละก้าว)</span>
+                </h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.84rem", color: "#334155" }}>
+                  <div><strong>ก้าวที่ 1:</strong> แตะเข้าเมนู "บิลค่าเช่าของฉัน"</div>
+                  <div><strong>ก้าวที่ 2:</strong> มองหาบิลที่มีป้ายสีแดงเขียนว่า "รอชำระเงิน" แล้วแตะปุ่ม "ดูรายละเอียดบิล & ชำระเงิน"</div>
+                  <div><strong>ก้าวที่ 3:</strong> ตรวจดูยอดเงินรวม แล้วใช้โทรศัพท์สแกนรหัสคิวอาร์พร้อมเพย์ หรือโอนเงินผ่านแอปพลิเคชันธนาคาร</div>
+                  <div><strong>ก้าวที่ 4:</strong> เมื่อโอนเงินเสร็จ ให้บันทึกรูปใบเสร็จโอนเงิน (สลิป) ลงในโทรศัพท์</div>
+                  <div><strong>ก้าวที่ 5:</strong> แตะปุ่ม "แนบสลิปโอนเงิน" เลือกรูปสลิป แล้วกดยืนยันส่งเรื่อง เจ้าหน้าที่จะตรวจและออกใบเสร็จให้ทันที</div>
+                </div>
+                <div style={{ marginTop: "0.85rem", padding: "0.75rem 1rem", background: "rgba(16, 185, 129, 0.08)", borderRadius: "10px", fontSize: "0.82rem", color: "#065f46", lineHeight: 1.6 }}>
+                  <strong>ตัวอย่างจริง:</strong> บิลเดือนนี้มียอดรวม 5,260 บาท เราโอนเงินเข้าพร้อมเพย์หอพักพอดี 5,260 บาท แล้วแนบรูปสลิป สถานะจะเปลี่ยนเป็น "รอตรวจสอบ" เมื่อเจ้าหน้าที่กดตรวจแล้ว จะเปลี่ยนเป็น "ชำระแล้ว" พร้อมปุ่มให้แตะดูใบเสร็จรับเงิน
+                </div>
+              </div>
+
+              {/* 3. Repair Step-by-Step */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#b45309", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Wrench size={18} />
+                  <span>3. วิธีแจ้งซ่อมอุปกรณ์ในห้องพัก (ทำทีละก้าว)</span>
+                </h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.84rem", color: "#334155" }}>
+                  <div><strong>ก้าวที่ 1:</strong> แตะเข้าเมนู "แจ้งซ่อมบำรุง"</div>
+                  <div><strong>ก้าวที่ 2:</strong> แตะปุ่ม "➕ แจ้งเรื่องซ่อมใหม่"</div>
+                  <div><strong>ก้าวที่ 3:</strong> เลือกประเภทปัญหา เช่น ไฟฟ้า น้ำประปา หรือเครื่องปรับอากาศ</div>
+                  <div><strong>ก้าวที่ 4:</strong> พิมพ์บอกอาการสั้นๆ เช่น "น้ำหยดใต้อ่างล้างหน้า" พร้อมแตะถ่ายรูปจุดที่ชำรุด</div>
+                  <div><strong>ก้าวที่ 5:</strong> แตะปุ่ม "ส่งเรื่องแจ้งซ่อม" ช่างและเจ้าหน้าที่หอพักจะได้รับข้อความแจ้งเตือนทันที</div>
+                </div>
+              </div>
+
+              {/* 4. Three Colors */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem" }}>
+                  4. ข้อจำง่ายๆ 3 สีประจำระบบ
+                </h3>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.65rem", fontSize: "0.84rem" }}>
+                  <div style={{ padding: "0.65rem 0.85rem", borderRadius: "8px", background: "rgba(220, 38, 38, 0.08)", color: "#dc2626", fontWeight: 600 }}>
+                    🔴 <strong>สีแดง:</strong> มีบิลที่ยังไม่ได้จ่ายเงิน หรือมีเรื่องด่วน
+                  </div>
+                  <div style={{ padding: "0.65rem 0.85rem", borderRadius: "8px", background: "rgba(245, 158, 11, 0.08)", color: "#b45309", fontWeight: 600 }}>
+                    🟡 <strong>สีเหลือง/ส้ม:</strong> ส่งสลิปแล้ว กำลังรอเจ้าหน้าที่ตรวจทาน
+                  </div>
+                  <div style={{ padding: "0.65rem 0.85rem", borderRadius: "8px", background: "rgba(5, 150, 105, 0.08)", color: "#065f46", fontWeight: 600 }}>
+                    🟢 <strong>สีเขียว:</strong> จ่ายเงินแล้ว หรือซ่อมเสร็จแล้ว เรียบร้อยดี
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. Mobile Menu Button */}
+              <div style={{ background: "rgba(79, 70, 229, 0.04)", borderRadius: "14px", border: "1px solid rgba(79, 70, 229, 0.2)", padding: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#4338ca", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Menu size={18} />
+                  <span>5. วิธีเปิดเมนูบนมือถือ (ปุ่มสามขีด ☰)</span>
+                </h3>
+                <p style={{ fontSize: "0.84rem", color: "#334155", lineHeight: 1.6, margin: 0 }}>
+                  หากใช้งานบนโทรศัพท์มือถือแล้วมองไม่เห็นแถบเมนู ให้แตะที่ <strong>ปุ่มสัญลักษณ์สามขีด ☰</strong> ที่มุมบนซ้ายของจอ เมนูจะเลื่อนเปิดออกมาให้แตะเลือกไปหน้ารายการบิล หรือหน้าแจ้งซ่อมได้อย่างง่ายดาย
+                </p>
+              </div>
+            </section>
+
             {/* บทที่ 1: การเข้าสู่ระบบ */}
             <section id="ch1" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 1</span>
-                <h2 className="chapter-title">การเข้าสู่ระบบผู้เช่า (Login)</h2>
+                <h2 className="chapter-title">การเข้าสู่ระบบผู้เช่า</h2>
                 <p className="chapter-subtitle">
                   ขั้นตอนการเข้าใช้งานระบบบริการตนเองของผู้พักอาศัย
                 </p>
@@ -240,7 +375,7 @@ export default function RentalManualPage() {
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 1: หน้าจอเข้าสู่ระบบ พร้อมกรอบแดงและตัวเลขไฮไลต์จุดสำคัญ (1) อีเมล (2) รหัสผ่าน (3) ปุ่มเข้าสู่ระบบ (4) ติดต่อนิติ
+                  ภาพที่ 1: หน้าจอเข้าสู่ระบบ พร้อมจุดสำคัญ (1) อีเมล (2) รหัสผ่าน (3) ปุ่มเข้าสู่ระบบ (4) ติดต่อสำนักงานหอพัก
                 </div>
               </div>
 
@@ -281,10 +416,10 @@ export default function RentalManualPage() {
               <div className="callout-warning">
                 <div className="callout-warning-header">
                   <AlertTriangle size={16} />
-                  <span>ข้อควรระวังสำคัญ (Golden Rules)</span>
+                  <span>ข้อควรระวังสำคัญ</span>
                 </div>
                 <p className="callout-warning-text">
-                  หากท่านลืมรหัสผ่าน ไม่สามารถรีเซ็ตด้วยตนเองผ่านหน้าเว็บได้เพื่อความปลอดภัยสูงสุดของข้อมูลห้องพัก กรุณากดลิงก์ติดต่อสำนักงานนิติบุคคล [จุดที่ 4] เพื่อให้เจ้าหน้าที่ตรวจสอบตัวตนและตั้งรหัสผ่านใหม่ให้
+                  หากท่านลืมรหัสผ่าน ไม่สามารถรีเซ็ตด้วยตนเองผ่านหน้าเว็บได้เพื่อความปลอดภัยสูงสุดของข้อมูลห้องพัก กรุณากดลิงก์ติดต่อสำนักงานหอพัก [จุดที่ 4] เพื่อให้เจ้าหน้าที่ตรวจสอบตัวตนและตั้งรหัสผ่านใหม่ให้
                 </p>
               </div>
             </section>
@@ -293,7 +428,7 @@ export default function RentalManualPage() {
             <section id="ch2" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 2</span>
-                <h2 className="chapter-title">หน้าหลักผู้เช่า (Rental Dashboard)</h2>
+                <h2 className="chapter-title">หน้าหลักผู้เช่า</h2>
                 <p className="chapter-subtitle">
                   ศูนย์รวมข้อมูลสำคัญประจำห้องพัก การ์ดบิลค้างชำระ และเมนูด่วน
                 </p>
@@ -328,7 +463,7 @@ export default function RentalManualPage() {
                 <div className="info-card-item">
                   <div className="info-card-title">
                     <span className="badge-red-circle">1</span>
-                    <span>ป้ายหมายเลขห้องพัก (Room Badge)</span>
+                    <span>ป้ายหมายเลขห้องพัก</span>
                   </div>
                   <p className="info-card-desc">
                     แสดงหมายเลขห้อง เช่น "ห้อง 201" ชั้น 2 ประเภทห้อง และสถานะการพักอาศัยปัจจุบัน
@@ -338,7 +473,7 @@ export default function RentalManualPage() {
                 <div className="info-card-item">
                   <div className="info-card-title">
                     <span className="badge-red-circle">2</span>
-                    <span>การ์ดแจ้งหนี้เด่น (Hero Bill Card)</span>
+                    <span>การ์ดแจ้งหนี้เด่น</span>
                   </div>
                   <p className="info-card-desc">
                     หากมีบิลค้างชำระ ระบบจะแสดงยอดเงินรวมและกำหนดวันชำระ พร้อมปุ่มกดไปชำระเงินทันที
@@ -348,7 +483,7 @@ export default function RentalManualPage() {
                 <div className="info-card-item">
                   <div className="info-card-title">
                     <span className="badge-red-circle">3</span>
-                    <span>เมนูด่วน (Quick Actions)</span>
+                    <span>เมนูด่วน</span>
                   </div>
                   <p className="info-card-desc">
                     ทางลัดสำหรับการแจ้งซ่อม การดูบิลย้อนหลัง การดูสัญญาเช่า และการติดตามประกาศ
@@ -358,7 +493,7 @@ export default function RentalManualPage() {
                 <div className="info-card-item">
                   <div className="info-card-title">
                     <span className="badge-red-circle">4</span>
-                    <span>สรุปการใช้พลังงาน (Meter Analytics)</span>
+                    <span>สรุปการใช้พลังงาน</span>
                   </div>
                   <p className="info-card-desc">
                     แสดงหน่วยน้ำและไฟฟ้าที่ใช้ในเดือนล่าสุด ช่วยให้วางแผนค่าใช้จ่ายได้แม่นยำ
@@ -371,7 +506,7 @@ export default function RentalManualPage() {
             <section id="ch3" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 3</span>
-                <h2 className="chapter-title">การตรวจสอบและชำระบิลรายเดือน (Bills & Payments)</h2>
+                <h2 className="chapter-title">การตรวจสอบและชำระบิลรายเดือน</h2>
                 <p className="chapter-subtitle">
                   ขั้นตอนตั้งแต่ตรวจบิล สแกน QR PromptPay อัปโหลดสลิป จนถึงรับใบเสร็จรับเงิน
                 </p>
@@ -419,7 +554,7 @@ export default function RentalManualPage() {
                         <strong>ค้างชำระ (สีแดง):</strong> บิลใหม่ที่ยังไม่ได้ชำระ กรุณากดปุ่ม <em>"ชำระเงิน"</em> เพื่อเปิด QR Code
                       </li>
                       <li>
-                        <strong>รอตรวจสอบ (สีส้ม):</strong> ท่านได้อัปโหลดสลิปแล้ว กำลังรอเจ้าหน้าที่นิติบุคคลตรวจสอบยอดเงิน
+                        <strong>รอตรวจสอบ (สีส้ม):</strong> ท่านได้อัปโหลดสลิปแล้ว กำลังรอเจ้าหน้าที่หอพักตรวจสอบยอดเงิน
                       </li>
                       <li>
                         <strong>ชำระแล้ว (สีเขียว):</strong> การชำระเงินเสร็จสมบูรณ์ สามารถกดปุ่ม <em>"ใบเสร็จ"</em> เพื่อดูและพิมพ์ได้ทันที
@@ -538,7 +673,7 @@ export default function RentalManualPage() {
                     onClick={() =>
                       setLightboxImg({
                         src: "/manual/images/rental/03d_pending_verification.png",
-                        caption: "ภาพที่ 3d: ป้ายสถานะรอตรวจสอบสลิปจากเจ้าหน้าที่นิติบุคคล",
+                        caption: "ภาพที่ 3d: ป้ายสถานะรอตรวจสอบสลิปจากเจ้าหน้าที่หอพัก",
                       })
                     }
                   >
@@ -580,7 +715,7 @@ export default function RentalManualPage() {
             <section id="ch4" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 4</span>
-                <h2 className="chapter-title">การแจ้งซ่อมบำรุงห้องพัก (Maintenance Requests)</h2>
+                <h2 className="chapter-title">การแจ้งซ่อมบำรุงห้องพัก</h2>
                 <p className="chapter-subtitle">
                   ระบบส่งคำขอแจ้งซ่อม ติดตามความคืบหน้า และประวัติงานช่าง
                 </p>
@@ -635,7 +770,7 @@ export default function RentalManualPage() {
                       เลือกหมวดหมู่ให้ตรงกับปัญหา เช่น <em>ระบบไฟฟ้า, ประปา/ห้องน้ำ, เครื่องปรับอากาศ, เฟอร์นิเจอร์</em>
                     </li>
                     <li>
-                      หากเป็นเหตุฉุกเฉินที่มีผลกระทบเร่งด่วน เช่น น้ำรั่วซึมปริมาณมาก หรือไฟฟ้าลัดวงจร ให้ระบุความเร่งด่วนเป็น <em>"ด่วนมาก"</em> และโทรแจ้งนิติบุคคลควบคู่กัน
+                      หากเป็นเหตุฉุกเฉินที่มีผลกระทบเร่งด่วน เช่น น้ำรั่วซึมปริมาณมาก หรือไฟฟ้าลัดวงจร ให้ระบุความเร่งด่วนเป็น <em>"ด่วนมาก"</em> และโทรแจ้งเจ้าหน้าที่หอพักควบคู่กัน
                     </li>
                     <li>
                       การถ่ายรูปภาพจุดที่ชำรุดอย่างชัดเจน จะช่วยให้ช่างเตรียมอะไหล่และเครื่องมือเข้าซ่อมแซมได้รวดเร็วยิ่งขึ้น
@@ -650,7 +785,7 @@ export default function RentalManualPage() {
                   <span>ข้อควรระวังสำคัญ: ห้ามส่งคำร้องแจ้งซ่อมซ้ำซ้อน</span>
                 </div>
                 <p className="callout-warning-text">
-                  หากมีรายการแจ้งซ่อมเดิมที่ยังอยู่ในสถานะ <strong>"รอดำเนินการ" (Pending)</strong> หรือ <strong>"กำลังดำเนินการ" (In Progress)</strong> กรุณาอย่าส่งคำขอแจ้งซ่อมซ้ำสำหรับปัญหาเดิม เพื่อป้องกันความสับสนในการมอบหมายงานช่างและการจัดซื้ออะไหล่ หากต้องการติดตามความคืบหน้าเร่งด่วน ให้โทรติดต่อสำนักงานนิติบุคคลหรือแจ้งผ่าน LINE Official Account โดยตรง
+                  หากมีรายการแจ้งซ่อมเดิมที่ยังอยู่ในสถานะ <strong>"รอดำเนินการ"</strong> หรือ <strong>"กำลังดำเนินการ"</strong> กรุณาอย่าส่งคำขอแจ้งซ่อมซ้ำสำหรับปัญหาเดิม เพื่อป้องกันความสับสนในการมอบหมายงานช่างและการจัดซื้ออะไหล่ หากต้องการติดตามความคืบหน้าเร่งด่วน ให้โทรติดต่อสำนักงานหอพักหรือแจ้งผ่าน LINE Official Account โดยตรง
                 </p>
               </div>
             </section>
@@ -659,7 +794,7 @@ export default function RentalManualPage() {
             <section id="ch5" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 5</span>
-                <h2 className="chapter-title">การติดตามประกาศหอพัก (Announcements)</h2>
+                <h2 className="chapter-title">การติดตามประกาศหอพัก</h2>
                 <p className="chapter-subtitle">
                   รับทราบข่าวสาร กำหนดการล้างถังพักน้ำ ฉีดพ่นกำจัดแมลง และระเบียบสำคัญ
                 </p>
@@ -690,7 +825,7 @@ export default function RentalManualPage() {
               <div className="callout-info">
                 <div className="callout-info-text">
                   <p style={{ marginBottom: "0.5rem" }}>
-                    <strong style={{ color: "#0f172a" }}>ประกาศด่วนและสำคัญ (Pinned Announcements):</strong> จะปรากฏอยู่ด้านบนสุดเสมอ พร้อมแถบสีแดงหรือส้ม เพื่อให้ผู้เช่าไม่พลาดกำหนดการตัดน้ำ/ตัดไฟเพื่อบำรุงรักษา
+                    <strong style={{ color: "#0f172a" }}>ประกาศด่วนและสำคัญ:</strong> จะปรากฏอยู่ด้านบนสุดเสมอ พร้อมแถบสีแดงหรือส้ม เพื่อให้ผู้เช่าไม่พลาดกำหนดการตัดน้ำ/ตัดไฟเพื่อบำรุงรักษา
                   </p>
                   <p style={{ margin: 0 }}>
                     <strong style={{ color: "#0f172a" }}>การเชื่อมต่อ LINE Official Account:</strong> แนะนำให้ผู้พักอาศัยกดปุ่มเพิ่มเพื่อนใน LINE เพื่อรับการแจ้งเตือนบิลรายเดือนและประกาศฉุกเฉินผ่านมือถือได้ทันที
@@ -704,7 +839,7 @@ export default function RentalManualPage() {
                   <span>ข้อควรระวังสำคัญ: ประกาศปักหมุดสีแดงต้องอ่านและเตรียมตัวทันที</span>
                 </div>
                 <p className="callout-warning-text">
-                  ประกาศที่มีแถบสีแดงหรือปักหมุด <strong>"ด่วนมาก" (Urgent)</strong> คือประกาศที่มีผลกระทบต่อชีวิตความเป็นอยู่และการใช้สาธารณูปโภคโดยตรง เช่น กำหนดการตัดน้ำประปาเพื่อล้างถังพักน้ำประจำปี, การซ่อมบำรุงหม้อแปลงไฟฟ้าส่วนกลาง, หรือการฉีดพ่นสารเคมีกำจัดแมลง ผู้พักอาศัยควรอ่านรายละเอียดวันและเวลาให้ชัดเจน และเตรียมสำรองน้ำดื่ม/น้ำใช้ หรือปิดระเบียงห้องพักให้เรียบร้อยล่วงหน้า
+                  ประกาศที่มีแถบสีแดงหรือปักหมุด <strong>"ด่วนมาก"</strong> คือประกาศที่มีผลกระทบต่อชีวิตความเป็นอยู่และการใช้สาธารณูปโภคโดยตรง เช่น กำหนดการตัดน้ำประปาเพื่อล้างถังพักน้ำประจำปี, การซ่อมบำรุงหม้อแปลงไฟฟ้าส่วนกลาง, หรือการฉีดพ่นสารเคมีกำจัดแมลง ผู้พักอาศัยควรอ่านรายละเอียดวันและเวลาให้ชัดเจน และเตรียมสำรองน้ำดื่ม/น้ำใช้ หรือปิดระเบียงห้องพักให้เรียบร้อยล่วงหน้า
                 </p>
               </div>
             </section>
@@ -713,7 +848,7 @@ export default function RentalManualPage() {
             <section id="ch6" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 6</span>
-                <h2 className="chapter-title">ข้อมูลผู้เช่าและสัญญาเช่า (Profile & Contract)</h2>
+                <h2 className="chapter-title">ข้อมูลผู้เช่าและสัญญาเช่า</h2>
                 <p className="chapter-subtitle">
                   ตรวจสอบวันเริ่มต้น-สิ้นสุดสัญญาเช่า ยอดเงินประกันห้อง และเบอร์ติดต่อฉุกเฉิน
                 </p>
@@ -767,7 +902,7 @@ export default function RentalManualPage() {
             <section id="ch7" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge-dark">บทที่ 7</span>
-                <h2 className="chapter-title">กฎระเบียบและข้อควรระวังสำคัญ (Golden Rules)</h2>
+                <h2 className="chapter-title">กฎระเบียบและข้อควรระวังสำคัญ</h2>
                 <p className="chapter-subtitle">
                   ข้อกำหนดและแนวทางปฏิบัติเพื่อความปลอดภัยและความสงบสุขของผู้พักอาศัยทุกท่าน
                 </p>
@@ -810,7 +945,7 @@ export default function RentalManualPage() {
             <section id="ch8" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge" style={{ background: "#4f46e5" }}>บทที่ 8</span>
-                <h2 className="chapter-title">คำถามที่พบบ่อย (Frequently Asked Questions - FAQ)</h2>
+                <h2 className="chapter-title">คำถามที่พบบ่อย</h2>
                 <p className="chapter-subtitle">
                   รวบรวมข้อสงสัยและคำถามที่พบบ่อยเกี่ยวกับการใช้งานระบบและการพักอาศัย
                 </p>
@@ -823,7 +958,7 @@ export default function RentalManualPage() {
                     <span>ถาม: หากลืมรหัสผ่านเข้าสู่ระบบ ต้องทำอย่างไร?</span>
                   </div>
                   <p className="info-card-desc" style={{ paddingLeft: "1.55rem" }}>
-                    <strong>ตอบ:</strong> เนื่องจากระบบยึดหลักความปลอดภัยสูงสุดของข้อมูลห้องพัก ผู้พักอาศัยจะไม่สามารถกดรีเซ็ตรหัสผ่านด้วยตนเองผ่านหน้าเว็บได้ กรุณาติดต่อสำนักงานนิติบุคคล ชั้น 1 หรือโทร 081-999-8888 เพื่อให้เจ้าหน้าที่ตรวจสอบตัวตนและทำการออกรหัสผ่านเริ่มต้นใหม่ให้
+                    <strong>ตอบ:</strong> เนื่องจากระบบยึดหลักความปลอดภัยสูงสุดของข้อมูลห้องพัก ผู้พักอาศัยจะไม่สามารถกดรีเซ็ตรหัสผ่านด้วยตนเองผ่านหน้าเว็บได้ กรุณาติดต่อสำนักงานหอพัก ชั้น 1 หรือโทร 081-999-8888 เพื่อให้เจ้าหน้าที่ตรวจสอบตัวตนและทำการออกรหัสผ่านเริ่มต้นใหม่ให้
                   </p>
                 </div>
 
@@ -833,7 +968,7 @@ export default function RentalManualPage() {
                     <span>ถาม: อัปโหลดสลิปแล้ว แต่สถานะแจ้งว่าไม่ผ่าน หรือถูกปฏิเสธ ต้องทำอย่างไร?</span>
                   </div>
                   <p className="info-card-desc" style={{ paddingLeft: "1.55rem" }}>
-                    <strong>ตอบ:</strong> ตรวจสอบว่ายอดเงินที่โอนตรงตามยอดในบิลทุกประการหรือไม่ (ห้ามปัดเศษสตางค์) และภาพสลิปมีความคมชัดเห็นวันเวลาและรหัสอ้างอิงชัดเจน หากข้อมูลถูกต้องแต่ระบบปฏิเสธ ให้ติดต่อเจ้าหน้าที่นิติบุคคลพร้อมนำสลิปจากแอปธนาคารตัวจริงมาให้เจ้าหน้าที่ตรวจสอบเพื่ออนุมัติเข้าระบบแบบแมนนวล
+                    <strong>ตอบ:</strong> ตรวจสอบว่ายอดเงินที่โอนตรงตามยอดในบิลทุกประการหรือไม่ (ห้ามปัดเศษสตางค์) และภาพสลิปมีความคมชัดเห็นวันเวลาและรหัสอ้างอิงชัดเจน หากข้อมูลถูกต้องแต่ระบบปฏิเสธ ให้ติดต่อเจ้าหน้าที่หอพักพร้อมนำสลิปจากแอปธนาคารตัวจริงมาให้เจ้าหน้าที่ตรวจสอบเพื่ออนุมัติเข้าระบบแบบแมนนวล
                   </p>
                 </div>
 
@@ -843,7 +978,7 @@ export default function RentalManualPage() {
                     <span>ถาม: หากเข้าเว็บไซต์ไม่ได้ หรือระบบเกิดข้อขัดข้องชั่วคราว ต้องโทรแจ้งใคร?</span>
                   </div>
                   <p className="info-card-desc" style={{ paddingLeft: "1.55rem" }}>
-                    <strong>ตอบ:</strong> สามารถติดต่อเจ้าหน้าที่นิติบุคคลประจำอาคารได้ทางโทรศัพท์ 081-999-8888 หรือ 02-711-0099 (เวลาทำการ 08:30 - 18:00 น.) หรือส่งข้อความแจ้งทาง LINE Official Account: @thesaranrom ได้ตลอด 24 ชั่วโมง โดยเจ้าหน้าที่จะตรวจสอบและอำนวยความสะดวกให้ทันที
+                    <strong>ตอบ:</strong> สามารถติดต่อเจ้าหน้าที่หอพักประจำอาคารได้ทางโทรศัพท์ 081-999-8888 หรือ 02-711-0099 (เวลาทำการ 08:30 - 18:00 น.) หรือส่งข้อความแจ้งทาง LINE Official Account: @thesaranrom ได้ตลอด 24 ชั่วโมง โดยเจ้าหน้าที่จะตรวจสอบและอำนวยความสะดวกให้ทันที
                   </p>
                 </div>
 
@@ -853,7 +988,7 @@ export default function RentalManualPage() {
                     <span>ถาม: ต้องการต่อสัญญาเช่า หรือย้ายออกเมื่อสิ้นสุดสัญญา ต้องแจ้งล่วงหน้ากี่วัน?</span>
                   </div>
                   <p className="info-card-desc" style={{ paddingLeft: "1.55rem" }}>
-                    <strong>ตอบ:</strong> ผู้เช่าต้องแจ้งความประสงค์ล่วงหน้าอย่างน้อย 30 วันก่อนวันสิ้นสุดสัญญาเช่า เพื่อให้นิติบุคคลจัดเตรียมเอกสารสัญญาฉบับใหม่ หรือทำการนัดหมายตรวจสภาพห้องพักและดำเนินการขั้นตอนการคืนเงินประกันความเสียหายตามระเบียบ
+                    <strong>ตอบ:</strong> ผู้เช่าต้องแจ้งความประสงค์ล่วงหน้าอย่างน้อย 30 วันก่อนวันสิ้นสุดสัญญาเช่า เพื่อให้เจ้าหน้าที่หอพักจัดเตรียมเอกสารสัญญาฉบับใหม่ หรือทำการนัดหมายตรวจสภาพห้องพักและดำเนินการขั้นตอนการคืนเงินประกันความเสียหายตามระเบียบ
                   </p>
                 </div>
 
@@ -863,7 +998,7 @@ export default function RentalManualPage() {
                     <span>ถาม: ต้องการเปลี่ยนเบอร์โทรศัพท์ หรือเบอร์ติดต่อฉุกเฉิน ต้องทำอย่างไร?</span>
                   </div>
                   <p className="info-card-desc" style={{ paddingLeft: "1.55rem" }}>
-                    <strong>ตอบ:</strong> เพื่อความถูกต้องของข้อมูลตามสัญญาเช่า ให้ผู้เช่าติดต่อเจ้าหน้าที่นิติบุคคลที่สำนักงาน ชั้น 1 หรือส่งข้อความยืนยันผ่าน LINE Official Account เพื่อให้เจ้าหน้าที่ดำเนินการอัปเดตข้อมูลผู้ติดต่อฉุกเฉินในฐานข้อมูลระบบกลาง
+                    <strong>ตอบ:</strong> เพื่อความถูกต้องของข้อมูลตามสัญญาเช่า ให้ผู้เช่าติดต่อเจ้าหน้าที่หอพักที่สำนักงาน ชั้น 1 หรือส่งข้อความยืนยันผ่าน LINE Official Account เพื่อให้เจ้าหน้าที่ดำเนินการอัปเดตข้อมูลผู้ติดต่อฉุกเฉินในฐานข้อมูลระบบกลาง
                   </p>
                 </div>
 

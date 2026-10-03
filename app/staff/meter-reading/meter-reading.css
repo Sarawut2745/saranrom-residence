@@ -1,0 +1,700 @@
+/* ==========================================================================
+   Mobile-First Meter Reading Stylesheet
+   Designed for single-handed mobile recording & door-to-door workflow
+   ========================================================================== */
+
+.mr-container {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 0.5rem 0.85rem 8.5rem 0.85rem;
+  min-height: 100dvh;
+  position: relative;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: #f8fafc;
+}
+
+/* Top App Header */
+.mr-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  margin: -0.5rem -0.85rem 1rem -0.85rem;
+  padding: max(0.85rem, env(safe-area-inset-top)) 1rem 0.75rem 1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.mr-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.mr-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mr-back-btn:hover {
+  background: #e2e8f0;
+}
+
+.mr-title-area {
+  text-align: right;
+}
+
+.mr-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.mr-period-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  background: rgba(79, 70, 229, 0.08);
+  border-radius: 6px;
+  color: #4f46e5;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
+/* Progress Section */
+.mr-progress-card {
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.mr-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.mr-progress-track {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mr-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #10b981);
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+/* Floor Filter Pills */
+.mr-floor-pills {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: none;
+}
+.mr-floor-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.mr-floor-pill {
+  flex-shrink: 0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mr-floor-pill.active {
+  background: #4f46e5;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(79, 70, 229, 0.3);
+}
+
+.mr-floor-badge {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.mr-floor-pill.active .mr-floor-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Mode Switch Tabs */
+.mr-mode-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  background: #e2e8f0;
+  padding: 0.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.15rem;
+}
+
+.mr-mode-tab {
+  padding: 0.55rem 0.75rem;
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.2s;
+}
+
+.mr-mode-tab.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ================= FOCUS MODE CARD ================= */
+.mr-focus-card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  animation: mrCardIn 0.22s ease-out;
+}
+
+@keyframes mrCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mr-focus-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1.15rem;
+}
+
+.mr-room-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.mr-room-number {
+  font-size: 2.2rem;
+  font-weight: 850;
+  color: #0f172a;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.mr-room-floor {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.mr-room-tenant-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.mr-tenant-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.mr-room-rent {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* Meter Input Section */
+.mr-meter-box {
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.mr-meter-water {
+  background: rgba(2, 132, 199, 0.04);
+  border: 1.5px solid rgba(2, 132, 199, 0.25);
+}
+
+.mr-meter-electric {
+  background: rgba(217, 119, 6, 0.04);
+  border: 1.5px solid rgba(217, 119, 6, 0.25);
+}
+
+.mr-meter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.mr-meter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 750;
+  font-size: 0.95rem;
+}
+
+.mr-meter-water .mr-meter-label {
+  color: #0284c7;
+}
+
+.mr-meter-electric .mr-meter-label {
+  color: #d97706;
+}
+
+.mr-prev-tag {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.05);
+  color: #475569;
+}
+
+.mr-meter-input-row {
+  display: flex;
+  gap: 0.65rem;
+  align-items: stretch;
+}
+
+.mr-meter-input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.mr-meter-input {
+  width: 100%;
+  height: 54px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  padding: 0 0.85rem;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  text-align: right;
+  font-family: monospace, inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.mr-meter-input:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+}
+
+.mr-meter-unit-label {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.mr-meter-calc {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.65rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba(0, 0, 0, 0.08);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.mr-meter-calc-units {
+  color: #475569;
+}
+
+.mr-meter-calc-cost {
+  font-weight: 750;
+  color: #0f172a;
+}
+
+/* Warnings */
+.mr-warning-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.75rem;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  color: #c2410c;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* Focus Navigation Controls */
+.mr-focus-nav {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.mr-btn-prev {
+  flex: 1;
+  height: 52px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: all 0.15s;
+}
+
+.mr-btn-prev:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mr-btn-next {
+  flex: 2;
+  height: 52px;
+  border-radius: 12px;
+  background: #4f46e5;
+  border: none;
+  color: #ffffff;
+  font-weight: 750;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: all 0.15s;
+}
+
+.mr-btn-next:active {
+  transform: scale(0.98);
+}
+
+/* ================= LIST MODE ================= */
+.mr-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 2rem;
+}
+
+.mr-list-card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s;
+}
+
+.mr-list-card.recorded {
+  border-left: 4px solid #10b981;
+}
+
+.mr-list-card.pending {
+  border-left: 4px solid #f59e0b;
+}
+
+.mr-list-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.mr-list-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.mr-list-input-cell {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.mr-list-input-cell label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.mr-list-input-cell input {
+  width: 100%;
+  height: 40px;
+  font-size: 1.15rem;
+  font-weight: 750;
+  text-align: right;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  box-sizing: border-box;
+}
+
+/* ================= STICKY BOTTOM BAR ================= */
+.mr-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 0.85rem 1rem max(0.85rem, env(safe-area-inset-bottom)) 1rem;
+  box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.08);
+}
+
+.mr-bottom-inner {
+  max-width: 580px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-left: 2.25rem;
+}
+
+@media (min-width: 640px) {
+  .mr-bottom-inner {
+    padding-left: 0.5rem;
+  }
+}
+
+.mr-bottom-stats {
+  display: flex;
+  flex-direction: column;
+}
+
+.mr-bottom-stats-title {
+  font-size: 0.76rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.mr-bottom-stats-value {
+  font-size: 1.05rem;
+  font-weight: 850;
+  color: #0f172a;
+}
+
+.mr-btn-generate-all {
+  height: 48px;
+  padding: 0 1.35rem;
+  border-radius: 12px;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  font-weight: 750;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.mr-btn-generate-all:hover {
+  background: #059669;
+}
+
+.mr-btn-generate-all:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Modal Overlay */
+.mr-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .mr-modal-overlay {
+    align-items: center;
+    padding: 1rem;
+  }
+}
+
+.mr-modal-sheet {
+  background: #ffffff;
+  width: 100%;
+  max-width: 580px;
+  max-height: 85vh;
+  border-radius: 22px 22px 0 0;
+  padding: 1.5rem 1.25rem;
+  overflow-y: auto;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+  animation: mrSheetUp 0.25s ease-out;
+}
+
+@media (min-width: 640px) {
+  .mr-modal-sheet {
+    border-radius: 20px;
+  }
+}
+
+@keyframes mrSheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* PWA Install Pill */
+.mr-install-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+  transition: all 0.2s;
+}
+
+.mr-install-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+.mr-install-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.mr-install-platform-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.mr-install-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.84rem;
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 0.35rem;
+}
+
+.mr-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}

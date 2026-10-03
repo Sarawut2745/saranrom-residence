@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useDormitory } from "@/lib/store/dormitory-context";
 import {
   Receipt,
@@ -16,6 +17,8 @@ import {
   Eye,
   Printer,
   X,
+  Smartphone,
+  ExternalLink,
 } from "lucide-react";
 import OfficialBillModal from "@/components/billing/OfficialBillModal";
 
@@ -82,19 +85,42 @@ export default function StaffBillsPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
+      <div className="bills-page-header">
         <div>
           <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            จัดการใบแจ้งหนี้ & จดมิเตอร์น้ำ-ไฟ (Billing)
+            จัดการใบแจ้งหนี้ & จดมิเตอร์น้ำ-ไฟ
           </h2>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem" }}>
             บันทึกเลขมิเตอร์ คำนวณยอดสุทธิ และออกบิลรายเดือนให้แต่ละห้อง
           </p>
         </div>
 
-        <button onClick={() => setIsModalOpen(true)} className="btn btn-primary">
-          <PlusCircle size={16} /> ออกบิลใหม่ / บันทึกมิเตอร์
-        </button>
+        <div className="bills-header-actions">
+          <Link
+            href="/staff/meter-reading"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn"
+            style={{
+              background: "rgba(79, 70, 229, 0.08)",
+              border: "1.5px solid #4f46e5",
+              color: "#4f46e5",
+              fontWeight: 750,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.45rem",
+              padding: "0.6rem 1.1rem",
+              borderRadius: "10px",
+              textDecoration: "none",
+            }}
+          >
+            <Smartphone size={17} /> โหมดเดินจดมิเตอร์บนมือถือ <ExternalLink size={14} style={{ opacity: 0.7 }} />
+          </Link>
+
+          <button onClick={() => setIsModalOpen(true)} className="btn btn-primary">
+            <PlusCircle size={16} /> ออกบิลใหม่ / บันทึกมิเตอร์
+          </button>
+        </div>
       </div>
 
       {successMsg && (
@@ -104,14 +130,15 @@ export default function StaffBillsPage() {
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="glass-card" style={{ padding: "1rem 1.5rem", marginBottom: "1.5rem", display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Filter size={16} style={{ color: "var(--text-muted)" }} />
-          <span style={{ fontSize: "0.88rem", color: "var(--text-secondary)" }}>สถานะบิล:</span>
+      {/* Filter and Search Bar (Desktop Inline / Mobile Stacked) */}
+      <div className="bills-filter-bar glass-card">
+        <div className="bills-filter-group">
+          <div className="bills-filter-label">
+            <Filter size={16} style={{ color: "var(--text-muted)" }} />
+            <span>สถานะบิล</span>
+          </div>
           <select
-            className="form-select"
-            style={{ padding: "0.4rem 0.8rem", width: "auto", fontSize: "0.85rem" }}
+            className="form-select bills-filter-select"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
@@ -122,21 +149,23 @@ export default function StaffBillsPage() {
           </select>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginLeft: "auto" }}>
-          <Search size={16} style={{ color: "var(--text-muted)" }} />
+        <div className="bills-search-group">
+          <div className="bills-search-label">
+            <Search size={16} style={{ color: "var(--text-muted)" }} />
+            <span>ค้นหาห้อง</span>
+          </div>
           <input
             type="text"
-            className="form-input"
-            placeholder="ค้นหาตามเลขห้อง..."
-            style={{ padding: "0.4rem 0.8rem", width: 160, fontSize: "0.85rem" }}
+            className="form-input bills-search-input"
+            placeholder="ค้นหาตามเลขห้อง เช่น 101..."
             value={searchRoom}
             onChange={(e) => setSearchRoom(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Bills Table */}
-      <div className="table-wrap glass-card">
+      {/* Desktop View: Full Table (Hidden on Mobile <= 768px) */}
+      <div className="bills-table-container table-wrap glass-card">
         <table className="custom-table">
           <thead>
             <tr>
@@ -153,41 +182,105 @@ export default function StaffBillsPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredBills.map((b) => {
-              const r = rooms.find((item) => item.id === b.room_id);
-              const rp = rentalProfiles.find((item) => item.id === b.rental_profile_id);
-              const u = users.find((item) => item.id === rp?.user_id);
+            {filteredBills.length === 0 ? (
+              <tr>
+                <td colSpan={10} style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-muted)" }}>
+                  ไม่พบรายการใบแจ้งหนี้ตามเงื่อนไขที่เลือก
+                </td>
+              </tr>
+            ) : (
+              filteredBills.map((b) => {
+                const r = rooms.find((item) => item.id === b.room_id);
+                const rp = rentalProfiles.find((item) => item.id === b.rental_profile_id);
+                const u = users.find((item) => item.id === rp?.user_id);
 
-              return (
-                <tr key={b.id}>
-                  <td>
-                    <strong style={{ color: "var(--text-primary)", fontSize: "1.05rem" }}>
-                      ห้อง {r?.room_number}
-                    </strong>
-                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                      {u?.full_name || "-"}
-                    </div>
-                  </td>
-                  <td>
-                    เดือน {b.month}/{b.year}
-                  </td>
-                  <td>{b.due_date}</td>
-                  <td>฿{b.room_fee.toLocaleString()}</td>
-                  <td>
-                    <div>{b.water_units} หน่วย</div>
-                    <span style={{ fontSize: "0.75rem", color: "#0284c7" }}>฿{b.water_fee.toLocaleString()}</span>
-                  </td>
-                  <td>
-                    <div>{b.electric_units} หน่วย</div>
-                    <span style={{ fontSize: "0.75rem", color: "#b45309" }}>฿{b.electric_fee.toLocaleString()}</span>
-                  </td>
-                  <td>฿{b.other_fees.toLocaleString()}</td>
-                  <td>
-                    <strong style={{ color: "var(--accent-gold)", fontSize: "1.1rem" }}>
-                      ฿{b.total_amount.toLocaleString()}
-                    </strong>
-                  </td>
-                  <td>
+                return (
+                  <tr key={b.id}>
+                    <td>
+                      <strong style={{ color: "var(--text-primary)", fontSize: "1.05rem" }}>
+                        ห้อง {r?.room_number}
+                      </strong>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                        {u?.full_name || "-"}
+                      </div>
+                    </td>
+                    <td>
+                      เดือน {b.month}/{b.year}
+                    </td>
+                    <td>{b.due_date}</td>
+                    <td>฿{b.room_fee.toLocaleString()}</td>
+                    <td>
+                      <div>{b.water_units} หน่วย</div>
+                      <span style={{ fontSize: "0.75rem", color: "#0284c7" }}>฿{b.water_fee.toLocaleString()}</span>
+                    </td>
+                    <td>
+                      <div>{b.electric_units} หน่วย</div>
+                      <span style={{ fontSize: "0.75rem", color: "#b45309" }}>฿{b.electric_fee.toLocaleString()}</span>
+                    </td>
+                    <td>฿{b.other_fees.toLocaleString()}</td>
+                    <td>
+                      <strong style={{ color: "var(--accent-gold)", fontSize: "1.1rem" }}>
+                        ฿{b.total_amount.toLocaleString()}
+                      </strong>
+                    </td>
+                    <td>
+                      {b.status === "unpaid" && (
+                        <span className="badge badge-unpaid">รอชำระ</span>
+                      )}
+                      {b.status === "pending_verification" && (
+                        <span className="badge badge-pending">รอตรวจสลิป</span>
+                      )}
+                      {b.status === "paid" && (
+                        <span className="badge badge-paid">ชำระแล้ว</span>
+                      )}
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <button
+                        type="button"
+                        onClick={() => setViewingBill(b)}
+                        className="btn btn-secondary btn-sm"
+                        style={{
+                          fontSize: "0.8rem",
+                          padding: "0.35rem 0.65rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.35rem",
+                          color: "#4f46e5",
+                          borderColor: "rgba(79, 70, 229, 0.2)",
+                        }}
+                        title="ดูและพิมพ์เอกสารทางการ"
+                      >
+                        <Eye size={13} /> ดู/พิมพ์บิล
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile View: Cards Stream (Visible only on Mobile <= 768px) */}
+      <div className="bills-cards-container">
+        {filteredBills.length === 0 ? (
+          <div className="glass-card" style={{ padding: "2.5rem 1rem", textAlign: "center", color: "var(--text-muted)" }}>
+            ไม่พบรายการใบแจ้งหนี้ตามเงื่อนไขที่เลือก
+          </div>
+        ) : (
+          filteredBills.map((b) => {
+            const r = rooms.find((item) => item.id === b.room_id);
+            const rp = rentalProfiles.find((item) => item.id === b.rental_profile_id);
+            const u = users.find((item) => item.id === rp?.user_id);
+
+            return (
+              <div key={`card-${b.id}`} className="bill-mobile-card">
+                <div className="bill-card-header">
+                  <div>
+                    <div className="bill-card-room">ห้อง {r?.room_number}</div>
+                    <div className="bill-card-tenant">{u?.full_name || "ผู้เช่าห้องพัก"}</div>
+                  </div>
+                  <div>
                     {b.status === "unpaid" && (
                       <span className="badge badge-unpaid">รอชำระ</span>
                     )}
@@ -197,54 +290,80 @@ export default function StaffBillsPage() {
                     {b.status === "paid" && (
                       <span className="badge badge-paid">ชำระแล้ว</span>
                     )}
-                  </td>
-                  <td style={{ textAlign: "center" }}>
-                    <button
-                      type="button"
-                      onClick={() => setViewingBill(b)}
-                      className="btn btn-secondary btn-sm"
-                      style={{
-                        fontSize: "0.8rem",
-                        padding: "0.35rem 0.65rem",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.35rem",
-                        color: "#4f46e5",
-                        borderColor: "rgba(79, 70, 229, 0.2)",
-                      }}
-                      title="ดูและพิมพ์เอกสารทางการ"
-                    >
-                      <Eye size={13} /> ดู/พิมพ์บิล
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  </div>
+                </div>
+
+                <div className="bill-card-grid">
+                  <div className="bill-grid-item">
+                    <span className="bill-grid-label">งวดประจำเดือน</span>
+                    <span className="bill-grid-val">เดือน {b.month}/{b.year}</span>
+                  </div>
+                  <div className="bill-grid-item">
+                    <span className="bill-grid-label">กำหนดชำระ</span>
+                    <span className="bill-grid-val">{b.due_date}</span>
+                  </div>
+                  <div className="bill-grid-item">
+                    <span className="bill-grid-label">ค่าเช่าห้องพัก</span>
+                    <span className="bill-grid-val">฿{b.room_fee.toLocaleString()}</span>
+                  </div>
+                  <div className="bill-grid-item">
+                    <span className="bill-grid-label">ค่าบริการส่วนกลาง</span>
+                    <span className="bill-grid-val">฿{b.other_fees.toLocaleString()}</span>
+                  </div>
+                  <div className="bill-grid-item">
+                    <span className="bill-grid-label">ค่าน้ำ ({b.water_units} หน่วย)</span>
+                    <span className="bill-grid-val" style={{ color: "#0284c7" }}>
+                      ฿{b.water_fee.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="bill-grid-item">
+                    <span className="bill-grid-label">ค่าไฟ ({b.electric_units} หน่วย)</span>
+                    <span className="bill-grid-val" style={{ color: "#b45309" }}>
+                      ฿{b.electric_fee.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bill-card-total-row">
+                  <span>ยอดรวมสุทธิ</span>
+                  <span className="bill-card-total-amount">฿{b.total_amount.toLocaleString()} บาท</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setViewingBill(b)}
+                  className="btn bill-card-view-btn"
+                >
+                  <Eye size={15} /> ดูและพิมพ์ใบแจ้งหนี้ทางการ
+                </button>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* Issue Bill Modal */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: "2rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560, width: "100%", padding: "1.5rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <Receipt size={22} style={{ color: "var(--accent-gold)" }} />
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--text-primary)" }}>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-primary)" }}>
                   ออกใบแจ้งหนี้ประจำเดือน
                 </h3>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center" }}
+                style={{ width: 40, height: 40, background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8 }}
+                aria-label="ปิดหน้าต่าง"
               >
                 <X size={20} />
               </button>
             </div>
 
             <form onSubmit={handleCreateBill}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="form-grid-2col">
                 <div className="form-group">
                   <label className="form-label">เลือกห้องพักที่มีผู้เช่า *</label>
                   <select
@@ -287,16 +406,16 @@ export default function StaffBillsPage() {
               </div>
 
               {/* Water Meter Section */}
-              <div style={{ background: "rgba(59, 130, 246, 0.08)", padding: "1rem", borderRadius: "10px", border: "1px solid rgba(59, 130, 246, 0.2)", marginBottom: "1rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-                  <span style={{ color: "#2563eb", fontSize: "0.88rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+              <div style={{ background: "rgba(59, 130, 246, 0.08)", padding: "0.85rem 1rem", borderRadius: "10px", border: "1px solid rgba(59, 130, 246, 0.2)", marginBottom: "1rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem", flexWrap: "wrap", gap: "0.3rem" }}>
+                  <span style={{ color: "#2563eb", fontSize: "0.88rem", fontWeight: 750, display: "flex", alignItems: "center", gap: "0.3rem" }}>
                     <Droplets size={16} /> มิเตอร์น้ำประปา (฿{waterRate}/หน่วย)
                   </span>
                   <span style={{ color: "var(--text-primary)", fontSize: "0.85rem" }}>
                     ใช้ไป <strong>{waterUnits}</strong> หน่วย = <strong>฿{waterFee.toLocaleString()}</strong>
                   </span>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-grid-2col">
                   <div>
                     <label style={{ fontSize: "0.78rem", color: "var(--text-secondary)", display: "block", marginBottom: "0.2rem" }}>เลขมิเตอร์ครั้งก่อน</label>
                     <input
@@ -321,16 +440,16 @@ export default function StaffBillsPage() {
               </div>
 
               {/* Electric Meter Section */}
-              <div style={{ background: "rgba(245, 158, 11, 0.08)", padding: "1rem", borderRadius: "10px", border: "1px solid rgba(245, 158, 11, 0.2)", marginBottom: "1.25rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-                  <span style={{ color: "#c2410c", fontSize: "0.88rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+              <div style={{ background: "rgba(245, 158, 11, 0.08)", padding: "0.85rem 1rem", borderRadius: "10px", border: "1px solid rgba(245, 158, 11, 0.2)", marginBottom: "1.25rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem", flexWrap: "wrap", gap: "0.3rem" }}>
+                  <span style={{ color: "#c2410c", fontSize: "0.88rem", fontWeight: 750, display: "flex", alignItems: "center", gap: "0.3rem" }}>
                     <Zap size={16} /> มิเตอร์ไฟฟ้า (฿{electricRate}/หน่วย)
                   </span>
                   <span style={{ color: "var(--text-primary)", fontSize: "0.85rem" }}>
                     ใช้ไป <strong>{electricUnits}</strong> หน่วย = <strong>฿{electricFee.toLocaleString()}</strong>
                   </span>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-grid-2col">
                   <div>
                     <label style={{ fontSize: "0.78rem", color: "var(--text-secondary)", display: "block", marginBottom: "0.2rem" }}>เลขมิเตอร์ครั้งก่อน</label>
                     <input
@@ -354,7 +473,7 @@ export default function StaffBillsPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.5rem" }}>
+              <div className="form-grid-2col" style={{ marginBottom: "1.25rem" }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label">ค่าส่วนกลาง / ขยะ (บาท)</label>
                   <input

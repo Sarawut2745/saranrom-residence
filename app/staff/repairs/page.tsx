@@ -53,7 +53,7 @@ export default function StaffRepairsPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            จัดการงานแจ้งซ่อมบำรุง (Maintenance Tickets)
+            งานแจ้งซ่อม
           </h2>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem" }}>
             รับเรื่องแจ้งซ่อม นัดหมายช่าง และอัปเดตความคืบหน้าให้ผู้เช่าทราบ
@@ -69,9 +69,9 @@ export default function StaffRepairsPage() {
             onChange={(e) => setFilterStatus(e.target.value)}
           >
             <option value="all">ทั้งหมด ({repairRequests.length})</option>
-            <option value="pending">รอรับเรื่อง (Pending)</option>
-            <option value="in_progress">กำลังดำเนินการ (In Progress)</option>
-            <option value="completed">เสร็จสิ้นแล้ว (Completed)</option>
+            <option value="pending">รอรับเรื่อง</option>
+            <option value="in_progress">กำลังซ่อม</option>
+            <option value="completed">เสร็จแล้ว</option>
           </select>
         </div>
       </div>
@@ -83,36 +83,132 @@ export default function StaffRepairsPage() {
         </div>
       )}
 
-      {/* Repairs List */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      {/* Desktop View: Repairs Table (Hidden on Mobile <= 768px) */}
+      <div className="repairs-table-container table-wrap glass-card" style={{ marginBottom: "1.5rem" }}>
+        <table className="custom-table">
+          <thead>
+            <tr>
+              <th style={{ whiteSpace: "nowrap" }}>ห้องพัก</th>
+              <th style={{ whiteSpace: "nowrap" }}>ผู้แจ้งซ่อม</th>
+              <th style={{ minWidth: 220, whiteSpace: "nowrap" }}>เรื่องที่แจ้งซ่อม</th>
+              <th style={{ whiteSpace: "nowrap" }}>หมวดหมู่</th>
+              <th style={{ whiteSpace: "nowrap" }}>ระดับความเร่งด่วน</th>
+              <th style={{ whiteSpace: "nowrap" }}>วันที่แจ้ง</th>
+              <th style={{ whiteSpace: "nowrap" }}>สถานะ</th>
+              <th style={{ textAlign: "right", whiteSpace: "nowrap" }}>การดำเนินการ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRequests.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-muted)" }}>
+                  ไม่พบรายการแจ้งซ่อมตามเงื่อนไขที่เลือก
+                </td>
+              </tr>
+            ) : (
+              filteredRequests.map((req) => {
+                const room = rooms.find((r) => r.id === req.room_id);
+                const rental = rentalProfiles.find((rp) => rp.id === req.rental_profile_id);
+                const tenantUser = users.find((u) => u.id === rental?.user_id);
+
+                return (
+                  <tr key={req.id}>
+                    <td>
+                      <strong style={{ color: "var(--accent-gold)", fontSize: "1.05rem" }}>
+                        ห้อง {room?.room_number || "-"}
+                      </strong>
+                    </td>
+                    <td>
+                      <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                        {tenantUser?.full_name || "-"}
+                      </div>
+                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                        โทร {tenantUser?.phone || "-"}
+                      </div>
+                    </td>
+                    <td>
+                      <strong style={{ color: "var(--text-primary)", display: "block" }}>
+                        {req.title}
+                      </strong>
+                      <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {req.description}
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: "0.85rem" }}>{req.category}</span>
+                    </td>
+                    <td>
+                      {req.priority === "high" && <span className="badge badge-urgent">ด่วนมาก</span>}
+                      {req.priority === "medium" && <span className="badge badge-maintenance">ปานกลาง</span>}
+                      {req.priority === "low" && <span className="badge" style={{ background: "rgba(255,255,255,0.05)" }}>ทั่วไป</span>}
+                    </td>
+                    <td style={{ fontSize: "0.82rem", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
+                      {new Date(req.created_at).toLocaleDateString("th-TH")}
+                    </td>
+                    <td>
+                      {req.status === "pending" && (
+                        <span className="badge badge-pending">
+                          <Clock size={12} /> รอรับเรื่อง
+                        </span>
+                      )}
+                      {req.status === "in_progress" && (
+                        <span className="badge badge-occupied">
+                          <Wrench size={12} /> ประสานงานช่าง
+                        </span>
+                      )}
+                      {req.status === "completed" && (
+                        <span className="badge badge-paid">
+                          <CheckCircle2 size={12} /> ซ่อมเสร็จแล้ว
+                        </span>
+                      )}
+                    </td>
+                    <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                      <button
+                        onClick={() => handleOpenEdit(req)}
+                        className="btn btn-secondary btn-sm"
+                        title="อัปเดตสถานะงานแจ้งซ่อม"
+                      >
+                        <Wrench size={14} /> จัดการงานซ่อม
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile View: Repairs Cards Stream (Visible only on Mobile <= 768px) */}
+      <div className="repairs-cards-container">
         {filteredRequests.map((req) => {
           const room = rooms.find((r) => r.id === req.room_id);
           const rental = rentalProfiles.find((rp) => rp.id === req.rental_profile_id);
           const tenantUser = users.find((u) => u.id === rental?.user_id);
 
           return (
-            <div key={req.id} className="glass-card" style={{ padding: "1.75rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem", marginBottom: "1rem" }}>
+            <div key={req.id} className="glass-card" style={{ padding: "1.25rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.75rem", marginBottom: "0.85rem" }}>
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.3rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem", flexWrap: "wrap" }}>
                     <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--accent-gold)" }}>
                       ห้อง {room?.room_number || "ไม่ระบุ"}
                     </span>
                     <span style={{ color: "var(--text-muted)" }}>•</span>
-                    <span style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
-                      ผู้แจ้ง: {tenantUser?.full_name || "-"} (โทร {tenantUser?.phone})
+                    <span style={{ fontSize: "0.82rem", color: "var(--text-primary)" }}>
+                      {tenantUser?.full_name || "-"}
                     </span>
                     <span style={{ color: "var(--text-muted)" }}>•</span>
-                    <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                      {new Date(req.created_at).toLocaleString("th-TH")}
+                    <span style={{ fontSize: "0.76rem", color: "var(--text-secondary)" }}>
+                      {new Date(req.created_at).toLocaleDateString("th-TH")}
                     </span>
                   </div>
-                  <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-primary)" }}>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
                     {req.title}
                   </h3>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                   {req.priority === "high" && <span className="badge badge-urgent">ด่วนมาก</span>}
                   {req.priority === "medium" && <span className="badge badge-maintenance">ปานกลาง</span>}
                   {req.priority === "low" && <span className="badge" style={{ background: "rgba(255,255,255,0.05)" }}>ทั่วไป</span>}
@@ -124,49 +220,46 @@ export default function StaffRepairsPage() {
                   )}
                   {req.status === "in_progress" && (
                     <span className="badge badge-occupied">
-                      <Wrench size={12} /> ประสานงานช่าง
+                      <Wrench size={12} /> กำลังซ่อม
                     </span>
                   )}
                   {req.status === "completed" && (
                     <span className="badge badge-paid">
-                      <CheckCircle2 size={12} /> ซ่อมเสร็จแล้ว
+                      <CheckCircle2 size={12} /> เสร็จแล้ว
                     </span>
                   )}
                 </div>
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.02)", padding: "1rem", borderRadius: "8px", marginBottom: "1rem" }}>
-                <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.3rem" }}>
+              <div style={{ background: "rgba(255,255,255,0.02)", padding: "0.85rem", borderRadius: "8px", marginBottom: "0.85rem" }}>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.25rem" }}>
                   หมวดหมู่: {req.category}
                 </div>
-                <p style={{ color: "var(--text-primary)", fontSize: "0.92rem", lineHeight: 1.6 }}>
+                <p style={{ color: "var(--text-primary)", fontSize: "0.88rem", lineHeight: 1.5, margin: 0 }}>
                   {req.description}
                 </p>
               </div>
 
               {req.image_urls && req.image_urls.length > 0 && (
-                <div style={{ marginBottom: "1.25rem" }}>
-                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                    <Camera size={14} /> รูปภาพแนบจากผู้เช่า ({req.image_urls.length} รูป - คลิกเพื่อดูภาพขยาย)
+                <div style={{ marginBottom: "1rem" }}>
+                  <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <Camera size={13} /> รูปภาพ ({req.image_urls.length} รูป - แตะเพื่อขยาย)
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.85rem" }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.65rem" }}>
                     {req.image_urls.map((img, i) => (
                       <div
                         key={i}
                         onClick={() => setPreviewImage(img)}
                         style={{
-                          width: 160,
-                          height: 110,
-                          borderRadius: "10px",
+                          width: 120,
+                          height: 85,
+                          borderRadius: "8px",
                           overflow: "hidden",
                           border: "1px solid var(--border-color)",
                           cursor: "pointer",
                           position: "relative",
-                          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
                           background: "#000",
                         }}
-                        className="hover-card"
-                        title="คลิกเพื่อดูรูปภาพขนาดเต็ม"
                       >
                         <img
                           src={img}
@@ -181,14 +274,14 @@ export default function StaffRepairsPage() {
                             right: 0,
                             background: "linear-gradient(transparent, rgba(15, 23, 42, 0.8))",
                             color: "#fff",
-                            fontSize: "0.72rem",
-                            padding: "0.4rem 0.5rem 0.25rem",
+                            fontSize: "0.68rem",
+                            padding: "0.3rem 0.4rem 0.2rem",
                             display: "flex",
                             alignItems: "center",
-                            gap: "0.25rem",
+                            gap: "0.2rem",
                           }}
                         >
-                          <ZoomIn size={12} /> คลิกขยายรูป
+                          <ZoomIn size={11} /> ขยายรูป
                         </div>
                       </div>
                     ))}
@@ -197,11 +290,11 @@ export default function StaffRepairsPage() {
               )}
 
               {req.staff_comment && req.staff_comment.trim() !== "" && req.staff_comment.trim() !== "..." && (
-                <div style={{ background: "rgba(245, 158, 11, 0.08)", padding: "0.85rem 1rem", borderRadius: "8px", border: "1px solid rgba(245, 158, 11, 0.2)", marginBottom: "1rem" }}>
-                  <span style={{ fontSize: "0.78rem", color: "var(--accent-gold)", fontWeight: 600, display: "block" }}>
-                    บันทึกจากนิติบุคคล:
+                <div style={{ background: "rgba(245, 158, 11, 0.08)", padding: "0.75rem 0.85rem", borderRadius: "8px", border: "1px solid rgba(245, 158, 11, 0.2)", marginBottom: "0.85rem" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--accent-gold)", fontWeight: 600, display: "block" }}>
+                    บันทึกจากเจ้าหน้าที่หอพัก:
                   </span>
-                  <span style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>
+                  <span style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
                     {req.staff_comment}
                   </span>
                 </div>
@@ -209,8 +302,10 @@ export default function StaffRepairsPage() {
 
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button
+                  type="button"
                   onClick={() => handleOpenEdit(req)}
-                  className="btn btn-primary btn-sm"
+                  className="btn btn-primary"
+                  style={{ width: "100%", height: 44, justifyContent: "center", fontSize: "0.88rem" }}
                 >
                   <Wrench size={14} /> อัปเดตสถานะงาน / บันทึกนัดช่าง
                 </button>

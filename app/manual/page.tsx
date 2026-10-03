@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import "./manual.css";
 import {
   BookOpen,
@@ -12,12 +13,10 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
-  Home,
-  Wrench,
-  UserCheck,
   PhoneCall,
   ChevronRight,
 } from "lucide-react";
+import { useDormitory } from "@/lib/store/dormitory-context";
 
 interface ManualVolume {
   id: string;
@@ -38,7 +37,7 @@ const volumes: ManualVolume[] = [
   {
     id: "rental",
     volumeNumber: 1,
-    title: "คู่มือผู้เช่าห้องพัก (Rental Portal)",
+    title: "คู่มือผู้เช่าห้องพัก",
     subtitle: "ระบบบริการตนเองสำหรับผู้พักอาศัย เดอะ สราญรมย์ เรสซิเดนซ์",
     targetRole: "ผู้เช่าห้องพักทุกท่าน",
     description:
@@ -49,44 +48,46 @@ const volumes: ManualVolume[] = [
     pdfDownloadUrl: "/manual/manual-rental.pdf",
     pdfSize: "3.3 MB",
     features: [
+      "⭐ ฉบับเข้าใจง่ายที่สุด: จ่ายค่าเช่าและแจ้งซ่อมใน 3 ก้าว",
       "การเข้าสู่ระบบด้วยอีเมลและรหัสผ่าน",
       "หน้าหลักแดชบอร์ดและการตรวจสอบสถานะห้องพัก",
       "การชำระเงินผ่าน QR PromptPay และอัปโหลดสลิป",
       "การตรวจสอบสถานะสลิปและการพิมพ์ใบเสร็จรับเงิน",
       "การส่งคำขอแจ้งซ่อมและกล่องข้อควรระวังสำคัญ",
-      "คำถามที่พบบ่อย (FAQ) และแนวทางแก้ไขปัญหา",
+      "คำถามที่พบบ่อยและแนวทางแก้ไขปัญหา",
     ],
   },
   {
     id: "staff",
     volumeNumber: 2,
-    title: "คู่มือเจ้าหน้าที่นิติและช่าง (Staff Portal)",
+    title: "คู่มือเจ้าหน้าที่หอพักและช่างประจำอาคาร",
     subtitle: "ระบบปฏิบัติการสำหรับเจ้าหน้าที่ธุรการและช่างประจำอาคาร",
-    targetRole: "เจ้าหน้าที่นิติบุคคล, ช่างเทคนิค",
+    targetRole: "เจ้าหน้าที่หอพัก, ช่างประจำอาคาร",
     description:
-      "คู่มือการปฏิบัติงานประจำวัน การบันทึกเลขมิเตอร์น้ำ-ไฟ การออกบิลแจ้งหนี้ประจำเดือน การตรวจสอบความถูกต้องของสลิปโอนเงิน การจัดผังห้องพัก และการจัดการสถานะงานซ่อมบำรุง",
+      "คู่มือการปฏิบัติงานประจำวัน การบันทึกเลขมิเตอร์น้ำ-ไฟผ่านมือถือ การออกบิลแจ้งหนี้ประจำเดือน การตรวจสอบความถูกต้องของสลิปโอนเงิน การจัดผังห้องพัก และการจัดการสถานะงานซ่อมบำรุง",
     status: "available",
     statusText: "พร้อมใช้งาน",
     readOnlineUrl: "/manual/staff",
     pdfDownloadUrl: "/manual/manual-staff.pdf",
     pdfSize: "3.2 MB",
     features: [
-      "ระบบจดมิเตอร์น้ำและไฟฟ้าประจำเดือน",
+      "⭐ ฉบับเข้าใจง่ายที่สุด: ภาษาพูดทีละก้าวสำหรับผู้เริ่มต้น",
+      "ระบบเดินจดมิเตอร์บนมือถือและออกบิลอัตโนมัติ",
       "การประมวลผลและออกบิลแจ้งหนี้รายเดือน",
       "การตรวจสอบสลิปการโอนเงินและอนุมัติใบเสร็จ",
       "การบริหารผังห้องพักและเปลี่ยนสถานะห้อง",
       "การจ่ายงานและติดตามสถานะงานแจ้งซ่อม",
-      "คำถามที่พบบ่อย (FAQ) สำหรับเจ้าหน้าที่",
+      "คำถามที่พบบ่อยสำหรับเจ้าหน้าที่",
     ],
   },
   {
     id: "owner",
     volumeNumber: 3,
-    title: "คู่มือผู้บริหารและเจ้าของหอพัก (Owner-Only Portal)",
+    title: "คู่มือเจ้าของหอพักและผู้บริหาร",
     subtitle: "ระบบควบคุมเชิงบริหารและการเงินระดับสูง",
     targetRole: "เจ้าของหอพัก, ผู้บริหาร",
     description:
-      "คู่มือการใช้งานแดชบอร์ดสรุปผลประกอบการ การตรวจสอบสถิติการเข้าพัก การตั้งค่าประเภทห้องพักและอัตราค่าน้ำ-ค่าไฟมาตรฐาน การจัดการบัญชี Staff และการควบคุมความโปร่งใสด้านการเงิน",
+      "คู่มือการใช้งานแดชบอร์ดสรุปผลประกอบการ การตรวจสอบสถิติการเข้าพัก การตั้งค่าประเภทห้องพักและอัตราค่าน้ำ-ค่าไฟมาตรฐาน การจัดการบัญชีพนักงาน และการควบคุมความโปร่งใสด้านการเงิน",
     status: "available",
     statusText: "พร้อมใช้งาน",
     readOnlineUrl: "/manual/owner",
@@ -95,15 +96,44 @@ const volumes: ManualVolume[] = [
     features: [
       "แดชบอร์ดภาพรวมรายรับ-รายจ่ายและอัตราการเช่า",
       "การกำหนดราคาห้องพักและอัตราค่าน้ำ-ค่าไฟมาตรฐาน",
-      "การสร้างและบริหารจัดการบัญชีพนักงานนิติบุคคล",
+      "การสร้างและบริหารจัดการบัญชีเจ้าหน้าที่หอพัก",
       "การกำกับดูแลการเงินและการตรวจสอบสลิปย้อนหลัง",
-      "แนวปฏิบัติและกฎเหล็กสำหรับผู้บริหาร (Golden Rules)",
-      "คำถามที่พบบ่อย (FAQ) สำหรับเจ้าของหอพัก",
+      "แนวปฏิบัติและกฎเหล็กสำหรับผู้บริหาร",
+      "คำถามที่พบบ่อยสำหรับเจ้าของหอพัก",
     ],
   },
 ];
 
 export default function ManualHubPage() {
+  const router = useRouter();
+  const { currentUser, currentStaffProfile, currentRentalProfile, isOwner, isLoading } = useDormitory();
+
+  useEffect(() => {
+    if (!isLoading && !currentUser) {
+      router.replace("/login");
+    }
+  }, [isLoading, currentUser, router]);
+
+  // กำลังโหลดหรือยังไม่ได้ login → แสดงหน้าว่าง รอ redirect
+  if (isLoading || !currentUser) {
+    return <div style={{ minHeight: "100vh" }} />;
+  }
+
+  // กรองเล่มคู่มือตาม role
+  let filteredVolumes: ManualVolume[] = [];
+
+  if (currentUser.role === "rental" || currentRentalProfile) {
+    filteredVolumes = volumes.filter((v) => v.id === "rental");
+  } else if (isOwner || (currentStaffProfile && currentStaffProfile.is_owner)) {
+    filteredVolumes = volumes.filter((v) => v.id === "owner");
+  } else if (currentUser.role === "staff" || currentStaffProfile) {
+    filteredVolumes = volumes.filter((v) => v.id === "staff");
+  } else {
+    return <div style={{ minHeight: "100vh" }} />;
+  }
+
+
+
   return (
     <div className="manual-wrapper">
       <div className="manual-container">
@@ -124,21 +154,19 @@ export default function ManualHubPage() {
               </div>
               <h1 className="manual-hero-title">ศูนย์รวมคู่มือการใช้งานระบบ</h1>
               <p className="manual-hero-desc">
-                เดอะ สราญรมย์ เรสซิเดนซ์ (The Saranrom Residence & Apartment)
-                จัดทำคู่มือการใช้งานระบบ 3 เล่มตามบทบาทผู้ใช้งาน พร้อมภาพหน้าจอจริงและคำแนะนำอย่างเป็นขั้นตอน
+                เดอะ สราญรมย์ เรสซิเดนซ์ (The Saranrom Residence &amp; Apartment)
+                จัดทำคู่มือการใช้งานระบบตามบทบาทผู้ใช้งาน พร้อมภาพหน้าจอจริงและคำแนะนำอย่างเป็นขั้นตอน
               </p>
             </div>
 
-            <div className="manual-actions-row">
-              <Link href="/manual/rental" className="manual-btn-primary">
-                <BookOpen size={16} />
-                <span>เปิดอ่านคู่มือผู้เช่า</span>
-              </Link>
-              <a href="/manual/manual-rental.pdf" download className="manual-btn-secondary">
-                <Download size={16} />
-                <span>ดาวน์โหลด PDF</span>
-              </a>
-            </div>
+            {filteredVolumes.length === 1 && filteredVolumes[0].readOnlineUrl && (
+              <div className="manual-actions-row">
+                <Link href={filteredVolumes[0].readOnlineUrl} className="manual-btn-primary">
+                  <BookOpen size={16} />
+                  <span>เปิดอ่านคู่มือ</span>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Quick highlight bar */}
@@ -181,23 +209,25 @@ export default function ManualHubPage() {
           </div>
         </div>
 
-        {/* Volume Cards List */}
+        {/* Volume Cards */}
         <div style={{ marginBottom: "2rem" }}>
           <div className="volumes-section-title">
             <div className="volumes-title-text">
               <FileText size={20} style={{ color: "#065f46" }} />
-              <span>รายการเล่มคู่มือการใช้งาน (3 Volumes)</span>
+              <span>
+                {filteredVolumes.length === 1
+                  ? "คู่มือการใช้งานของคุณ"
+                  : `รายการเล่มคู่มือการใช้งาน (${filteredVolumes.length} Volumes)`}
+              </span>
             </div>
-            <span style={{ fontSize: "0.8rem", color: "#64748b" }}>อ้างอิงข้อกำหนด AGENT_SPEC</span>
           </div>
 
           <div className="volumes-list">
-            {volumes.map((vol) => (
+            {filteredVolumes.map((vol) => (
               <div
                 key={vol.id}
                 className={`volume-card ${vol.status === "available" ? "volume-card-ready" : "volume-card-disabled"}`}
               >
-                {/* Left content */}
                 <div className="volume-card-left">
                   <div className="volume-meta-row">
                     <span className="volume-badge-number">เล่มที่ {vol.volumeNumber}</span>
@@ -219,14 +249,10 @@ export default function ManualHubPage() {
 
                   <h3 className="volume-card-title">{vol.title}</h3>
                   <p className="volume-card-subtitle">{vol.subtitle}</p>
-
                   <p className="volume-card-desc">{vol.description}</p>
 
-                  {/* Features list */}
                   <div>
-                    <div className="volume-features-title">
-                      หัวข้อสำคัญในคู่มือเล่มนี้:
-                    </div>
+                    <div className="volume-features-title">หัวข้อสำคัญในคู่มือเล่มนี้:</div>
                     <div className="volume-features-grid">
                       {vol.features.map((feat, idx) => (
                         <div key={idx} className="volume-feature-item">
@@ -244,7 +270,6 @@ export default function ManualHubPage() {
                   </div>
                 </div>
 
-                {/* Right actions */}
                 <div className="volume-card-actions">
                   {vol.status === "available" ? (
                     <>
@@ -270,18 +295,16 @@ export default function ManualHubPage() {
           </div>
         </div>
 
-        {/* Office Contact Info Box */}
+        {/* Contact */}
         <div className="manual-contact-card">
           <div className="manual-contact-left">
             <div className="manual-contact-icon">
               <PhoneCall size={22} />
             </div>
             <div>
-              <h4 className="manual-contact-title">
-                มีข้อสงสัยหรือพบปัญหาการใช้งานระบบ?
-              </h4>
+              <h4 className="manual-contact-title">มีข้อสงสัยหรือพบปัญหาการใช้งานระบบ?</h4>
               <p className="manual-contact-subtitle">
-                ติดต่อสำนักงานนิติบุคคล เดอะ สราญรมย์ เรสซิเดนซ์ ชั้น 1 (เวลาทำการ 08:30 - 18:00 น.)
+                ติดต่อสำนักงานหอพัก เดอะ สราญรมย์ เรสซิเดนซ์ ชั้น 1 (เวลาทำการ 08:30 - 18:00 น.)
               </p>
             </div>
           </div>

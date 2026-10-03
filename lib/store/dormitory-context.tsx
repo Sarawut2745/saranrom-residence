@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { createClient } from "@/client";
+import { createClient } from "@/lib/supabase/client";
 import {
   User,
   StaffProfile,
@@ -79,6 +79,17 @@ interface DormitoryContextType {
     other_fees: number;
     due_date: string;
   }) => void;
+  batchCreateBills: (dataList: Array<{
+    room_id: string;
+    month: number;
+    year: number;
+    water_meter_previous: number;
+    water_meter_current: number;
+    electric_meter_previous: number;
+    electric_meter_current: number;
+    other_fees: number;
+    due_date: string;
+  }>) => Promise<{ success: boolean; count: number; error?: string }>;
   updateRepairStatus: (repairId: string, status: RepairStatus, staffComment?: string) => void;
   updateRoomStatus: (roomId: string, status: RoomStatus) => void;
   createTenantWithContract: (data: CreateTenantData) => Promise<{ success: boolean; error?: string }>;
@@ -119,7 +130,7 @@ function mapUser(row: any): User {
   };
 }
 function mapStaffProfile(row: any): StaffProfile {
-  return { id: row.id, user_id: row.user_id, is_owner: row.is_owner, position: row.position || "เจ้าหน้าที่นิติบุคคล", notes: row.notes };
+  return { id: row.id, user_id: row.user_id, is_owner: row.is_owner, position: row.position || "เจ้าหน้าที่หอพัก", notes: row.notes };
 }
 function mapRoomType(row: any): RoomType {
   return { id: row.id, name: row.name, description: row.description || "", base_price: Number(row.base_price), water_rate: Number(row.water_rate), electric_rate: Number(row.electric_rate), amenities: Array.isArray(row.amenities) ? row.amenities : [], image_url: row.image_url };
@@ -279,7 +290,7 @@ export const DormitoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const login = (email: string, pass: string) => {
     const user = users.find((u) => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!user) return { success: false, error: "ไม่พบบัญชีผู้ใช้งานที่ระบุ กรุณาติดต่อฝ่ายนิติบุคคล" };
+    if (!user) return { success: false, error: "ไม่พบบัญชีผู้ใช้งานที่ระบุ กรุณาติดต่อสำนักงานหอพัก" };
     if ((user.password) !== pass) return { success: false, error: "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง" };
     try {
       localStorage.setItem(SESSION_KEY, user.id);
@@ -401,6 +412,93 @@ export const DormitoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setBills((prev) => [newBill, ...prev]);
     const { data: inserted } = await supabase.from("bill").insert({ room_id: data.room_id, rental_profile_id: targetRental.id, month: data.month, year: data.year, room_fee: targetRoom.monthly_rent, water_meter_previous: data.water_meter_previous, water_meter_current: data.water_meter_current, water_fee: waterFee, electric_meter_previous: data.electric_meter_previous, electric_meter_current: data.electric_meter_current, electric_fee: electricFee, other_fees: data.other_fees, total_amount: totalAmount, due_date: data.due_date, status: "unpaid" }).select().single();
     if (inserted) setBills((prev) => prev.map((b) => (b.id === tempId ? mapBill(inserted) : b)));
+  };
+
+  const batchCreateBills = async (dataList: Array<{ room_id: string; month: number; year: number; water_meter_previous: number; water_meter_current: number; electric_meter_previous: number; electric_meter_current: number; other_fees: number; due_date: string }>): Promise<{ success: boolean; count: number; error?: string }> => {
+    const supabase = getSupabase();
+    const newBills: Bill[] = [];
+    const dbPayloads: any[] = [];
+
+    for (const item of dataList) {
+      const targetRoom = rooms.find((r) => r.id === item.room_id);
+      const targetRental = rentalProfiles.find((rp) => rp.room_id === item.room_id && rp.status === "active") || rentalProfiles.find((rp) => rp.room_id === item.room_id);
+      if (!targetRoom || !targetRental) continue;
+
+      const targetRoomType = roomTypes.find((rt) => rt.id === targetRoom.room_type_id);
+      const waterRate = targetRoomType?.water_rate || 18;
+      const electricRate = targetRoomType?.electric_rate || 8;
+      const waterUnits = Math.max(0, item.water_meter_current - item.water_meter_previous);
+      const electricUnits = Math.max(0, item.electric_meter_current - item.electric_meter_previous);
+      const waterFee = waterUnits * waterRate;
+      const electricFee = electricUnits * electricRate;
+      const totalAmount = targetRoom.monthly_rent + waterFee + electricFee + item.other_fees;
+      const tempId = `tmp-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+      newBills.push({
+        id: tempId,
+        room_id: item.room_id,
+        rental_profile_id: targetRental.id,
+        month: item.month,
+        year: item.year,
+        room_fee: targetRoom.monthly_rent,
+        water_meter_previous: item.water_meter_previous,
+        water_meter_current: item.water_meter_current,
+        water_units: waterUnits,
+        water_fee: waterFee,
+        electric_meter_previous: item.electric_meter_previous,
+        electric_meter_current: item.electric_meter_current,
+        electric_units: electricUnits,
+        electric_fee: electricFee,
+        other_fees: item.other_fees,
+        total_amount: totalAmount,
+        due_date: item.due_date,
+        status: "unpaid",
+        created_at: new Date().toISOString(),
+      });
+
+      dbPayloads.push({
+        room_id: item.room_id,
+        rental_profile_id: targetRental.id,
+        month: item.month,
+        year: item.year,
+        room_fee: targetRoom.monthly_rent,
+        water_meter_previous: item.water_meter_previous,
+        water_meter_current: item.water_meter_current,
+        water_fee: waterFee,
+        electric_meter_previous: item.electric_meter_previous,
+        electric_meter_current: item.electric_meter_current,
+        electric_fee: electricFee,
+        other_fees: item.other_fees,
+        total_amount: totalAmount,
+        due_date: item.due_date,
+        status: "unpaid",
+      });
+    }
+
+    if (newBills.length === 0) {
+      return { success: false, count: 0, error: "ไม่พบห้องพักที่มีผู้เช่าเพื่อออกบิล" };
+    }
+
+    setBills((prev) => [...newBills, ...prev]);
+
+    try {
+      const { data: inserted, error: insertError } = await supabase.from("bill").insert(dbPayloads).select();
+      if (insertError) {
+        console.error("batchCreateBills insert error:", insertError);
+        return { success: true, count: newBills.length };
+      }
+      if (inserted && inserted.length > 0) {
+        const mappedInserted = inserted.map(mapBill);
+        setBills((prev) => {
+          const prevWithoutTemp = prev.filter((b) => !newBills.some((nb) => nb.id === b.id));
+          return [...mappedInserted, ...prevWithoutTemp];
+        });
+      }
+      return { success: true, count: newBills.length };
+    } catch (err: any) {
+      console.error("batchCreateBills error:", err);
+      return { success: true, count: newBills.length };
+    }
   };
 
   const updateRoomStatus = async (roomId: string, status: RoomStatus) => {
@@ -540,7 +638,7 @@ export const DormitoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <DormitoryContext.Provider value={{ users, staffProfiles, rentalProfiles, roomTypes, rooms, contracts, bills, paymentSlips, repairRequests, announcements, siteContent, isLoading, dbError, currentUser, currentStaffProfile, currentRentalProfile, isOwner, isAuthenticated, login, logout, switchUser, createTenantWithContract, payBill, verifyPaymentSlip, submitRepairRequest, updateRepairStatus, createBill, updateRoomStatus, addAnnouncement, deleteAnnouncement, updateSiteContent, resetTenantPassword, createStaff, deleteStaff, createRoomType, updateRoomType, createRoom, linkTenantLine, unlinkTenantLine }}>
+    <DormitoryContext.Provider value={{ users, staffProfiles, rentalProfiles, roomTypes, rooms, contracts, bills, paymentSlips, repairRequests, announcements, siteContent, isLoading, dbError, currentUser, currentStaffProfile, currentRentalProfile, isOwner, isAuthenticated, login, logout, switchUser, createTenantWithContract, payBill, verifyPaymentSlip, submitRepairRequest, updateRepairStatus, createBill, batchCreateBills, updateRoomStatus, addAnnouncement, deleteAnnouncement, updateSiteContent, resetTenantPassword, createStaff, deleteStaff, createRoomType, updateRoomType, createRoom, linkTenantLine, unlinkTenantLine }}>
       {children}
     </DormitoryContext.Provider>
   );

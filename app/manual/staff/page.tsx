@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDormitory } from "@/lib/store/dormitory-context";
 import "../manual.css";
 import {
   BookOpen,
@@ -25,6 +27,13 @@ import {
   Users,
   Megaphone,
   LayoutTemplate,
+  Smartphone,
+  Zap,
+  Droplets,
+  Receipt,
+  Search,
+  Menu,
+  Home,
 } from "lucide-react";
 
 interface ManualChapter {
@@ -37,73 +46,97 @@ interface ManualChapter {
 
 const chapters: ManualChapter[] = [
   {
+    id: "quickstart",
+    number: "⭐",
+    title: "คู่มือฉบับเข้าใจง่ายที่สุด (สำหรับพนักงานใหม่และผู้เริ่มต้น)",
+    shortTitle: "⭐ สำหรับผู้เริ่มต้น (อ่านง่าย)",
+    description: "ภาษาพูดเข้าใจง่าย ทำตามทีละก้าว ไม่ใช้ศัพท์เทคนิค เหมาะสำหรับผู้เริ่มต้น",
+  },
+  {
     id: "ch1",
     number: "บทที่ 1",
-    title: "หน้าแดชบอร์ดนิติบุคคลและคิวงานประจำวัน (Staff Dashboard)",
-    shortTitle: "1. แดชบอร์ดนิติบุคคล",
+    title: "หน้าแดชบอร์ดเจ้าหน้าที่และคิวงานประจำวัน",
+    shortTitle: "1. แดชบอร์ดเจ้าหน้าที่",
     description: "ภาพรวมตัวชี้วัดสำคัญ คิวตรวจสลิป และสรุปสถานะห้องพักประจำอาคาร",
   },
   {
     id: "ch2",
     number: "บทที่ 2",
-    title: "การออกบิลและจดมิเตอร์น้ำ-ไฟประจำเดือน (Monthly Bills & Meter Entry)",
-    shortTitle: "2. ออกบิล & จดมิเตอร์",
-    description: "บันทึกเลขมิเตอร์ คำนวณค่าน้ำ-ค่าไฟอัตโนมัติ และพิมพ์ใบแจ้งหนี้",
+    title: "การออกบิลและจดมิเตอร์น้ำ-ไฟผ่านมือถือ",
+    shortTitle: "2. ออกบิลและจดมิเตอร์มือถือ",
+    description: "โหมดเดินจดมิเตอร์บนมือถือ บันทึกเลขมิเตอร์ คำนวณค่าน้ำ-ไฟอัตโนมัติ และออกบิลพร้อมกันทั้งชั้น",
   },
   {
     id: "ch3",
     number: "บทที่ 3",
-    title: "การตรวจสอบสลิปและอนุมัติการชำระเงิน (Payments & Slip Verification)",
+    title: "การตรวจสอบสลิปและอนุมัติการชำระเงิน",
     shortTitle: "3. ตรวจสอบสลิปโอนเงิน",
     description: "ตรวจสอบยอดเงิน วันที่และเวลาโอนกับสเตตเมนต์ และอนุมัติการชำระเงิน",
   },
   {
     id: "ch4",
     number: "บทที่ 4",
-    title: "การจัดการผังห้องพักและเปลี่ยนสถานะ (Rooms Management)",
+    title: "การจัดการผังห้องพักและเปลี่ยนสถานะ",
     shortTitle: "4. จัดการผังห้องพัก",
-    description: "ดูผังห้องพักทุกชั้น เปลี่ยนสถานะว่าง มีผู้เช่า หรือปิดปรับปรุง",
+    description: "ดูผังห้องพักทุกชั้น เปลี่ยนสถานะห้องว่าง มีผู้เช่า หรือปิดปรับปรุง",
   },
   {
     id: "ch5",
     number: "บทที่ 5",
-    title: "การจัดการงานแจ้งซ่อมบำรุง (Repairs & Maintenance Workflow)",
+    title: "การจัดการงานแจ้งซ่อมบำรุง",
     shortTitle: "5. คิวงานแจ้งซ่อมบำรุง",
     description: "รับเรื่องแจ้งซ่อม จ่ายงานช่างเทคนิค และอัปเดตสถานะการแก้ไข",
   },
   {
     id: "ch6",
     number: "บทที่ 6",
-    title: "ข้อมูลผู้เช่าและสัญญาเช่า (Tenants & Contracts)",
+    title: "ข้อมูลผู้เช่าและสัญญาเช่า",
     shortTitle: "6. ผู้เช่าและสัญญาเช่า",
     description: "บันทึกประวัติผู้เช่า ระยะเวลาสัญญา เงินประกัน และเอกสารประจำห้อง",
   },
   {
     id: "ch7",
     number: "บทที่ 7",
-    title: "การส่งประกาศและแจ้งเตือนผ่าน LINE (Announcements & LINE Broadcast)",
-    shortTitle: "7. ส่งประกาศ & LINE OA",
+    title: "การส่งประกาศและแจ้งเตือนผ่านไลน์",
+    shortTitle: "7. ส่งประกาศและไลน์แจ้งเตือน",
     description: "กระจายข่าวสาร ปิดปรับปรุงระบบน้ำ-ไฟ และบรอดแคสต์เข้า LINE ผู้เช่า",
   },
   {
     id: "ch8",
     number: "บทที่ 8",
-    title: "การจัดการเนื้อหาหน้าเว็บไซต์หลัก (Landing Page Content CMS)",
+    title: "การจัดการเนื้อหาหน้าเว็บไซต์หลัก",
     shortTitle: "8. จัดการเนื้อหาเว็บ",
     description: "อัปเดตราคาห้องพัก ข้อมูลสิ่งอำนวยความสะดวก และรูปภาพส่วนกลาง",
   },
   {
     id: "ch9",
     number: "บทที่ 9",
-    title: "คำถามที่พบบ่อยสำหรับนิติบุคคล (Staff Operations FAQ)",
-    shortTitle: "9. คำถามที่พบบ่อย (FAQ)",
+    title: "คำถามที่พบบ่อยสำหรับการปฏิบัติงาน",
+    shortTitle: "9. คำถามที่พบบ่อย",
     description: "รวมแนวทางแก้ไขปัญหาการใช้งานระบบและแนวปฏิบัติการดูแลอาคาร",
   },
 ];
 
 export default function StaffManualPage() {
-  const [activeChapter, setActiveChapter] = useState("ch1");
+  const router = useRouter();
+  const { currentUser, currentStaffProfile, isLoading } = useDormitory();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!currentUser) {
+        router.replace("/login");
+      } else if (currentUser.role !== "staff" && !currentStaffProfile) {
+        router.replace("/manual");
+      }
+    }
+  }, [isLoading, currentUser, currentStaffProfile, router]);
+
+  const [activeChapter, setActiveChapter] = useState("quickstart");
   const [lightboxImg, setLightboxImg] = useState<{ src: string; caption: string } | null>(null);
+
+  if (isLoading || !currentUser || (currentUser.role !== "staff" && !currentStaffProfile)) {
+    return <div style={{ minHeight: "100vh" }} />;
+  }
 
   const scrollToSection = (id: string) => {
     setActiveChapter(id);
@@ -159,7 +192,7 @@ export default function StaffManualPage() {
               <span>ศูนย์คู่มือ</span>
             </Link>
             <ChevronRight size={14} />
-            <span className="manual-breadcrumb-current">คู่มือนิติบุคคลและช่างเทคนิค (เล่มที่ 2)</span>
+            <span className="manual-breadcrumb-current">คู่มือเจ้าหน้าที่หอพักและช่างเทคนิค (เล่มที่ 2)</span>
           </div>
 
           <div className="manual-actions-row">
@@ -189,18 +222,18 @@ export default function StaffManualPage() {
           <div>
             <div className="manual-tag manual-tag-banner">
               <BookOpen size={13} />
-              <span>USER MANUAL - VOLUME 2: STAFF OPERATIONS PORTAL</span>
+              <span>คู่มือการใช้งานระบบ - เล่มที่ 2: สำหรับเจ้าหน้าที่หอพักและช่างประจำอาคาร</span>
             </div>
-            <h1 className="manual-hero-title-light">คู่มือการใช้งานระบบสำหรับนิติบุคคลและช่างเทคนิค</h1>
+            <h1 className="manual-hero-title-light">คู่มือการใช้งานระบบสำหรับเจ้าหน้าที่หอพักและช่างเทคนิค</h1>
             <p className="manual-hero-desc-light">
-              เดอะ สราญรมย์ เรสซิเดนซ์ (The Saranrom Residence & Apartment)
+              เดอะ สราญรมย์ เรสซิเดนซ์
               รวบรวมขั้นตอนการบริหารงานอาคาร การออกบิลและจดมิเตอร์น้ำ-ไฟ การตรวจสอบและอนุมัติสลิปโอนเงิน
-              การจัดผังห้องพัก การรับเรื่องและจ่ายงานซ่อมบำรุง ตลอดจนการบรอดแคสต์ประกาศแจ้งเตือนอย่างละเอียด
+              การจัดผังห้องพัก การรับเรื่องและจ่ายงานซ่อมบำรุง ตลอดจนการส่งประกาศแจ้งเตือนอย่างละเอียด
             </p>
             <div style={{ display: "flex", gap: "1rem", fontSize: "0.75rem", color: "#a7f3d0", marginTop: "1rem", flexWrap: "wrap" }}>
               <span>ฉบับปรับปรุง: กันยายน 2026</span>
               <span>•</span>
-              <span>ผู้ใช้งาน: เจ้าหน้าที่นิติบุคคลและช่างประจำอาคาร</span>
+              <span>ผู้ใช้งาน: เจ้าหน้าที่หอพักและช่างประจำอาคาร</span>
               <span>•</span>
               <span>จำนวนบท: 9 บท (พร้อมภาพหน้าจอประกอบจริง)</span>
             </div>
@@ -211,7 +244,7 @@ export default function StaffManualPage() {
         <div className="rental-manual-layout">
           {/* Sticky Sidebar Navigation */}
           <div className="rental-sidebar">
-            <div className="rental-sidebar-title">สารบัญเนื้อหา (Staff Chapters)</div>
+            <div className="rental-sidebar-title">สารบัญเนื้อหา</div>
             <nav className="rental-sidebar-menu">
               {chapters.map((ch) => (
                 <button
@@ -238,7 +271,7 @@ export default function StaffManualPage() {
                 }}
               >
                 <PhoneCall size={14} style={{ color: "#065f46" }} />
-                <span>ฝ่ายบริหารจัดการอาคาร</span>
+                <span>สำนักงานหอพัก</span>
               </div>
               <div style={{ fontSize: "0.78rem", color: "#64748b", lineHeight: 1.5 }}>
                 โทร: 081-999-8888, 02-711-0099
@@ -252,13 +285,202 @@ export default function StaffManualPage() {
 
           {/* Chapters Content */}
           <div className="rental-content-area">
+            {/* SPECIAL QUICK START: FOR BEGINNERS & NON-TECH USERS */}
+            <section
+              id="quickstart"
+              className="chapter-box"
+              style={{
+                background: "linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(245, 158, 11, 0.04) 100%)",
+                border: "2px solid rgba(79, 70, 229, 0.25)",
+                borderRadius: "18px",
+                padding: "2rem",
+                marginBottom: "2.5rem",
+                boxShadow: "0 4px 20px -2px rgba(79, 70, 229, 0.08)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+                <div style={{ width: 42, height: 42, borderRadius: "12px", background: "#4f46e5", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <BookOpen size={22} />
+                </div>
+                <div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.2rem 0.55rem", background: "rgba(79, 70, 229, 0.12)", color: "#4338ca", borderRadius: "6px", fontSize: "0.74rem", fontWeight: 700, marginBottom: "0.25rem" }}>
+                    ⭐ ฉบับเข้าใจง่ายที่สุด
+                  </div>
+                  <h2 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0f172a", margin: 0 }}>
+                    คู่มือฉบับเข้าใจง่ายที่สุด (สำหรับพนักงานใหม่และผู้เริ่มต้น)
+                  </h2>
+                  <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "0.2rem 0 0" }}>
+                    อธิบายเป็นภาษาพูดเหมือนคุยกับเพื่อน ทีละก้าว ไม่ใช้ศัพท์เทคนิค แม้ไม่เคยใช้ระบบมาก่อนก็ทำตามได้ทันที
+                  </p>
+                </div>
+              </div>
+
+              {/* SECTION 1: Phone vs Computer */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <span>1. จอมือถือ กับ จอคอมพิวเตอร์ ต่างกันอย่างไร?</span>
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.6, margin: "0 0 0.75rem" }}>
+                  คิดภาพตามง่ายๆ นะครับ ระบบนี้เหมือนมีเครื่องมือทำงานให้เรา 2 ชิ้นตามความสะดวก:
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "0.85rem" }}>
+                  <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "10px", border: "1.5px solid #e0e7ff" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#4f46e5", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.35rem" }}>
+                      <Smartphone size={16} />
+                      <span>เมื่อเปิดบนโทรศัพท์มือถือ (การ์ดในกระเป๋า)</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569", lineHeight: 1.6 }}>
+                      เหมือนถือแผ่นกระดาษโน้ตใบๆ ทีละห้องอยู่ในมือ ตัวหนังสือใหญ่ ชัดเจน แตะปุ่มด้วยนิ้วโป้งมือเดียวได้สบาย ไม่ต้องเลื่อนจอซ้าย-ขวาให้เวียนหัว เหมาะมากเวลาเดินจดมิเตอร์หรือยืนตรวจงาน
+                    </p>
+                  </div>
+                  <div style={{ background: "#f8fafc", padding: "1rem", borderRadius: "10px", border: "1.5px solid #e2e8f0" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#0f172a", fontWeight: 700, fontSize: "0.92rem", marginBottom: "0.35rem" }}>
+                      <Building size={16} />
+                      <span>เมื่อเปิดบนจอคอมพิวเตอร์ (สมุดบัญชีเล่มใหญ่)</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569", lineHeight: 1.6 }}>
+                      เหมือนกางสมุดบัญชีเล่มใหญ่บนโต๊ะทำงาน ข้อมูลเรียงเป็นตารางแถวยาว กวาดสายตามองเห็นครบทุกห้องพร้อมกันในหน้าเดียว เหมาะสำหรับนั่งทำงานในสำนักงาน
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2: Hamburger Menu on Mobile */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Menu size={18} style={{ color: "#4f46e5" }} />
+                  <span>2. วิธีเปิดเมนูนำทางบนมือถือ (ปุ่มสามขีด ☰)</span>
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.6, margin: "0 0 0.75rem" }}>
+                  เปรียบเทียบง่ายๆ เหมือน <strong>"ลิ้นชักเก็บเครื่องมือข้างโต๊ะ"</strong> ที่ซ่อนไว้เพื่อไม่ให้รกหน้าจอ:
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.84rem", color: "#334155" }}>
+                  <div><strong>ก้าวที่ 1:</strong> มองไปที่มุมบนซ้ายของหน้าจอมือถือ</div>
+                  <div><strong>ก้าวที่ 2:</strong> แตะที่ปุ่มสัญลักษณ์สามขีด ☰ (ปุ่มเปิดเมนู)</div>
+                  <div><strong>ก้าวที่ 3:</strong> ลิ้นชักเมนูจะเลื่อนเปิดออกมา แตะเลือกหน้าที่ต้องการไปทำงาน เช่น "ตรวจสลิปชำระเงิน" หรือ "โหมดเดินจดมิเตอร์"</div>
+                  <div><strong>ก้าวที่ 4:</strong> เมื่อแตะเลือกหน้าแล้ว เมนูจะปิดเองโดยอัตโนมัติ พร้อมพาไปยังหน้านั้นทันที</div>
+                </div>
+              </div>
+
+              {/* SECTION 3: Walk meter reading mode */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#4f46e5", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Zap size={18} />
+                  <span>3. วิธีเดินจดมิเตอร์น้ำ-ไฟผ่านมือถือ (ทำทีละก้าว)</span>
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.6, margin: "0 0 0.75rem" }}>
+                  เปรียบเหมือนมี <strong>"เครื่องคิดเลขส่วนตัว"</strong> เดินไปด้วยกัน ไม่ต้องจำสูตรคำนวณ ไม่ต้องพกกระดาษปากกา:
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.84rem", color: "#334155" }}>
+                  <div><strong>ก้าวที่ 1:</strong> แตะปุ่มสีน้ำเงินม่วง "โหมดเดินจดมิเตอร์บนมือถือ"</div>
+                  <div><strong>ก้าวที่ 2:</strong> แตะเลือกชั้นที่กำลังจะเดินจด เช่น ปุ่ม <code>[ ชั้น 2 ]</code></div>
+                  <div><strong>ก้าวที่ 3:</strong> เดินไปยืนหน้าห้องแรก (เช่น ห้อง 201)</div>
+                  <div><strong>ก้าวที่ 4:</strong> ก้มดูเลขมิเตอร์น้ำหน้าห้อง แล้วพิมพ์ตัวเลขลงในช่อง "มิเตอร์น้ำ"</div>
+                  <div><strong>ก้าวที่ 5:</strong> ก้มดูเลขมิเตอร์ไฟหน้าห้อง แล้วพิมพ์ตัวเลขลงในช่อง "มิเตอร์ไฟ"</div>
+                  <div><strong>ก้าวที่ 6:</strong> แตะปุ่มสีเขียวขนาดใหญ่ "บันทึก & ไปห้องถัดไป" ด้วยนิ้วโป้ง</div>
+                  <div><strong>ก้าวที่ 7:</strong> หน้าจอจะสลับไปห้องถัดไปทันที (เช่น ห้อง 202) ให้เดินจดต่อไปเรื่อยๆ</div>
+                  <div><strong>ก้าวที่ 8:</strong> เมื่อจดครบทั้งชั้นแล้ว ให้แตะปุ่ม "ตรวจทาน & ออกบิลทั้งชั้น" เป็นอันเสร็จสิ้น</div>
+                </div>
+                <div style={{ marginTop: "0.85rem", padding: "0.75rem 1rem", background: "rgba(79, 70, 229, 0.07)", borderRadius: "10px", fontSize: "0.82rem", color: "#4338ca", lineHeight: 1.6 }}>
+                  <strong>ตัวอย่างจริง:</strong> หน้าห้อง 201 เดือนก่อนเลขมิเตอร์ไฟอยู่ที่ 500 วันนี้เราเห็นเลข 560 เราก็พิมพ์แค่ 560 ลงในช่อง ระบบจะรู้ทันทีว่าใช้ไฟไป 60 หน่วย คิดเป็นเงิน 480 บาท โดยที่เราไม่ต้องกดเครื่องคิดเลขเลย
+                </div>
+              </div>
+
+              {/* SECTION 4: Slip Inspection */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#065f46", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Receipt size={18} />
+                  <span>4. วิธีตรวจสลิปโอนเงินของผู้เช่า (ทำทีละก้าว)</span>
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.6, margin: "0 0 0.75rem" }}>
+                  เปรียบเหมือนเราหยิบใบเสร็จโอนเงินมาทาบดูกับบิลค่าห้อง ว่ายอดเงินตรงกันเป๊ะไหม:
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.84rem", color: "#334155" }}>
+                  <div><strong>ก้าวที่ 1:</strong> แตะเข้าเมนู "ตรวจสลิปชำระเงิน"</div>
+                  <div><strong>ก้าวที่ 2:</strong> มองหาห้องที่มีป้ายสีส้มเขียนว่า "รอตรวจสอบ"</div>
+                  <div><strong>ก้าวที่ 3:</strong> แตะปุ่ม "🔍 ตรวจสอบสลิป"</div>
+                  <div><strong>ก้าวที่ 4:</strong> กวาดตามองดูตัวเลขยอดเงิน ถ้าขึ้นตัวเลขสีเขียวแปลว่ายอดเงินตรงกันถูกต้อง</div>
+                  <div><strong>ก้าวที่ 5:</strong> แตะปุ่มสีเขียว "✓ อนุมัติการชำระเงิน" เพื่อยืนยัน</div>
+                </div>
+                <div style={{ marginTop: "0.85rem", padding: "0.75rem 1rem", background: "rgba(220, 38, 38, 0.07)", borderRadius: "10px", fontSize: "0.82rem", color: "#b91c1c", lineHeight: 1.6 }}>
+                  <strong>ตัวอย่างจริง กรณีเงินไม่ครบ:</strong> ผู้เช่าห้อง 302 บิลค่าเช่า 5,000 บาท แต่โอนมา 4,500 บาท ระบบจะเตือนตัวเลขสีแดง ให้เราแตะปุ่มสีแดง "✕ ปฏิเสธสลิปนี้" แล้วพิมพ์บอกว่า "ยอดเงินขาด 500 บาท" ข้อความจะส่งเตือนไปที่มือถือผู้เช่าทันที
+                </div>
+              </div>
+
+              {/* SECTION 5: Tenant & Room Search */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Search size={18} style={{ color: "#4f46e5" }} />
+                  <span>5. วิธีค้นหาห้องพักและผู้เช่าอย่างรวดเร็ว (ทำทีละก้าว)</span>
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.6, margin: "0 0 0.75rem" }}>
+                  เปรียบเหมือน <strong>"สมุดโทรศัพท์ที่มีแว่นขยายช่วยหา"</strong> ไม่ต้องไล่หาทีละหน้า:
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.84rem", color: "#334155" }}>
+                  <div><strong>ก้าวที่ 1:</strong> แตะเข้าเมนู "ข้อมูลผู้เช่า"</div>
+                  <div><strong>ก้าวที่ 2:</strong> แตะที่ช่องค้นหาที่มีรูปแว่นขยาย 🔍</div>
+                  <div><strong>ก้าวที่ 3:</strong> พิมพ์หมายเลขห้อง เช่น "201" หรือพิมพ์ชื่อผู้เช่า เช่น "สมชาย"</div>
+                  <div><strong>ก้าวที่ 4:</strong> รายชื่อห้องนั้นจะปรากฏขึ้นมาทันที สามารถดูเบอร์โทรหรือกดตั้งรหัสผ่านใหม่ได้ทันที</div>
+                </div>
+              </div>
+
+              {/* SECTION 6: Repairs Management */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Wrench size={18} style={{ color: "#b45309" }} />
+                  <span>6. วิธีรับเรื่องแจ้งซ่อมและส่งช่างไปแก้ไข (ทำทีละก้าว)</span>
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.6, margin: "0 0 0.75rem" }}>
+                  เปรียบเหมือน <strong>"กระดานแปะใบสั่งงานช่าง"</strong> ของหอพัก:
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.84rem", color: "#334155" }}>
+                  <div><strong>ก้าวที่ 1:</strong> แตะเข้าเมนู "งานแจ้งซ่อมบำรุง"</div>
+                  <div><strong>ก้าวที่ 2:</strong> แตะดูรายการที่ขึ้นป้ายสีส้ม "รอดำเนินการ" เพื่ออ่านปัญหาและแตะดูภาพถ่ายความเสียหาย</div>
+                  <div><strong>ก้าวที่ 3:</strong> โทรประสานงานช่างประจำอาคาร (ช่างไฟ ช่างประปา หรือช่างแอร์) พร้อมแตะเปลี่ยนสถานะเป็น "กำลังดำเนินการ"</div>
+                  <div><strong>ก้าวที่ 4:</strong> เมื่อช่างแก้ไขเรียบร้อย ให้แตะปุ่ม "เสร็จสิ้น" และพิมพ์บันทึกสั้นๆ เช่น "เปลี่ยนก๊อกน้ำใหม่เรียบร้อย" เพื่อจบงาน</div>
+                </div>
+              </div>
+
+              {/* SECTION 7: 3 Colors to Remember */}
+              <div style={{ background: "#ffffff", borderRadius: "14px", border: "1px solid #e2e8f0", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", margin: "0 0 0.5rem" }}>
+                  7. ข้อจำง่ายๆ 3 สีประจำระบบ
+                </h3>
+                <p style={{ fontSize: "0.86rem", color: "#475569", lineHeight: 1.6, margin: "0 0 0.75rem" }}>
+                  จำแค่ 3 สีนี้ จะเข้าใจสถานะงานทุกอย่างในหอพักได้ทันที:
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.65rem", fontSize: "0.84rem" }}>
+                  <div style={{ padding: "0.65rem 0.85rem", borderRadius: "8px", background: "rgba(220, 38, 38, 0.08)", color: "#dc2626", fontWeight: 600 }}>
+                    🔴 <strong>สีแดง:</strong> ยังไม่จ่ายเงิน หรือมีเรื่องด่วนที่ต้องรีบทำทันที
+                  </div>
+                  <div style={{ padding: "0.65rem 0.85rem", borderRadius: "8px", background: "rgba(245, 158, 11, 0.08)", color: "#b45309", fontWeight: 600 }}>
+                    🟡 <strong>สีเหลือง/ส้ม:</strong> รอเจ้าหน้าที่ตรวจสลิป หรือช่างกำลังดำเนินการซ่อม
+                  </div>
+                  <div style={{ padding: "0.65rem 0.85rem", borderRadius: "8px", background: "rgba(5, 150, 105, 0.08)", color: "#065f46", fontWeight: 600 }}>
+                    🟢 <strong>สีเขียว:</strong> เรียบร้อยดี เช่น จ่ายเงินครบแล้ว หรือซ่อมเสร็จแล้ว
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 8: Help & Reset */}
+              <div style={{ background: "rgba(79, 70, 229, 0.04)", borderRadius: "14px", border: "1px solid rgba(79, 70, 229, 0.2)", padding: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#4338ca", margin: "0 0 0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Home size={18} />
+                  <span>8. คำแนะนำเมื่อทำอะไรไม่ถูก หรือหน้าจอค้าง</span>
+                </h3>
+                <p style={{ fontSize: "0.84rem", color: "#334155", lineHeight: 1.6, margin: 0 }}>
+                  หากแตะผิดหน้า หรือสับสนว่ากำลังอยู่ที่ไหน ให้แตะที่ชื่อหอพัก <strong>"เดอะ สราญรมย์ เรสซิเดนซ์"</strong> หรือปุ่ม <strong>"หน้าหลัก"</strong> ที่มุมบนซ้าย เพื่อกลับมาเริ่มต้นใหม่ที่หน้าแรกเสมอ เหมือนกดปุ่มกลับจุดเริ่มต้น หรือหากอินเทอร์เน็ตสะดุด ให้แตะรีเฟรชหน้าจอเหมือนเปิดกระดาษหน้าใหม่ ข้อมูลที่บันทึกไปแล้วจะไม่สูญหาย
+                </p>
+              </div>
+            </section>
+
             {/* CHAPTER 1: DASHBOARD */}
             <section id="ch1" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 1</span>
-                <h2 className="chapter-title">หน้าแดชบอร์ดนิติบุคคลและคิวงานประจำวัน (Staff Dashboard)</h2>
+                <h2 className="chapter-title">หน้าแดชบอร์ดเจ้าหน้าที่และคิวงานประจำวัน</h2>
                 <p className="chapter-subtitle">
-                  ศูนย์รวมตัวชี้วัดสำคัญ คิวงานด่วนที่ต้องดำเนินการ และสถานะห้องพักแบบเรียลไทม์
+                  ศูนย์รวมตัวชี้วัดสำคัญ คิวงานด่วนที่ต้องดำเนินการ และสถานะห้องพักล่าสุด
                 </p>
               </div>
 
@@ -268,19 +490,19 @@ export default function StaffManualPage() {
                   onClick={() =>
                     setLightboxImg({
                       src: "/manual/images/staff/01_staff_dashboard.png",
-                      caption: "ภาพรวมแดชบอร์ดนิติบุคคลและคิวงานเร่งด่วน",
+                      caption: "ภาพรวมแดชบอร์ดเจ้าหน้าที่และคิวงานเร่งด่วน",
                     })
                   }
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/manual/images/staff/01_staff_dashboard.png" alt="หน้าแดชบอร์ดนิติบุคคล" />
+                  <img src="/manual/images/staff/01_staff_dashboard.png" alt="หน้าแดชบอร์ดเจ้าหน้าที่" />
                   <div className="screenshot-hover-hint">
                     <Maximize2 size={13} />
                     <span>คลิกเพื่อขยายภาพ</span>
                   </div>
                 </div>
                 <div className="screenshot-caption">
-                  ภาพที่ 1: ภาพรวมแดชบอร์ดนิติบุคคล พร้อมจุดสำคัญ (1) คิวตรวจสลิป (2) ปุ่มออกบิลด่วน (3) ตัวชี้วัดงาน
+                  ภาพที่ 1: ภาพรวมแดชบอร์ดเจ้าหน้าที่ พร้อมจุดสำคัญ (1) คิวตรวจสลิป (2) ปุ่มออกบิลด่วน (3) ตัวชี้วัดงาน
                 </div>
               </div>
 
@@ -288,7 +510,7 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">1</span>
                   <div>
-                    <strong>จุดที่ 1: คิวตรวจสอบสลิปโอนเงินล่าสุด (Pending Slips Queue)</strong>
+                    <strong>จุดที่ 1: คิวตรวจสอบสลิปโอนเงินล่าสุด</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       แสดงรายการสลิปที่ผู้เช่าอัปโหลดเข้ามาใหม่ เจ้าหน้าที่สามารถคลิกปุ่ม "ตรวจสลิป" เพื่อเปิดหน้าต่างตรวจสอบยอดเงินได้ทันที
                     </div>
@@ -297,16 +519,16 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">2</span>
                   <div>
-                    <strong>จุดที่ 2: ปุ่มออกบิลใหม่ / จดมิเตอร์ (Quick Action)</strong>
+                    <strong>จุดที่ 2: ปุ่มออกบิลใหม่และเดินจดมิเตอร์บนมือถือ</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      ทางลัดสำหรับเปิดหน้าต่างบันทึกเลขมิเตอร์น้ำประปาและไฟฟ้าประจำเดือน เพื่อคำนวณและออกใบแจ้งหนี้ให้ผู้เช่า
+                      ทางลัดเข้าสู่ระบบบันทึกมิเตอร์น้ำประปาและไฟฟ้า ทั้งแบบเปิดบนคอมพิวเตอร์และโหมดเดินจดบนมือถือ เพื่อออกใบแจ้งหนี้ให้ผู้เช่า
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num">3</span>
                   <div>
-                    <strong>จุดที่ 3: แผงตัวชี้วัดด่วน 4 ด้าน (Key Metrics Cards)</strong>
+                    <strong>จุดที่ 3: แผงตัวชี้วัดด่วน 4 ด้าน</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       สรุปสถิติด่วน ได้แก่ จำนวนสลิปรอตรวจ, บิลค้างชำระทั้งหมด, งานแจ้งซ่อมที่ยังค้างอยู่ และจำนวนห้องว่างพร้อมเปิดเช่า
                     </div>
@@ -317,10 +539,10 @@ export default function StaffManualPage() {
               <div className="callout-tip">
                 <div className="callout-tip-header">
                   <Info size={16} />
-                  <span>คำแนะนำการปฏิบัติงานประจำวัน (Daily Routine)</span>
+                  <span>คำแนะนำการปฏิบัติงานประจำวัน</span>
                 </div>
                 <div className="callout-tip-text">
-                  เจ้าหน้าที่นิติบุคคลควรเปิดหน้าแดชบอร์ดตรวจสอบเป็นสิ่งแรกในทุกเช้า (เวลา 08:30 น.)
+                  เจ้าหน้าที่หอพักควรเปิดหน้าแดชบอร์ดตรวจสอบเป็นสิ่งแรกในทุกเช้า (เวลา 08:30 น.)
                   เพื่อเคลียร์คิวสลิปที่ผู้เช่าโอนเข้ามาช่วงค่ำ และจ่ายงานแจ้งซ่อมเร่งด่วนให้ช่างเทคนิคดำเนินการภายใน 2 ชั่วโมง
                 </div>
               </div>
@@ -330,103 +552,242 @@ export default function StaffManualPage() {
             <section id="ch2" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 2</span>
-                <h2 className="chapter-title">การออกบิลและจดมิเตอร์น้ำ-ไฟประจำเดือน (Monthly Bills & Meter Entry)</h2>
+                <h2 className="chapter-title">การออกบิลและจดมิเตอร์น้ำ-ไฟผ่านมือถือ</h2>
                 <p className="chapter-subtitle">
-                  ขั้นตอนการบันทึกเลขมิเตอร์น้ำประปาและไฟฟ้า การคำนวณยูนิตอัตโนมัติ และการพิมพ์ใบแจ้งหนี้
+                  ขั้นตอนการเดินจดเลขมิเตอร์ผ่านมือถือ, การคำนวณค่าน้ำ-ไฟอัตโนมัติ, การออกบิลพร้อมกันทั้งชั้น และการพิมพ์ใบแจ้งหนี้
                 </p>
               </div>
 
-              <div className="screenshot-container">
-                <div
-                  className="screenshot-frame"
-                  onClick={() =>
-                    setLightboxImg({
-                      src: "/manual/images/staff/02a_bills_overview.png",
-                      caption: "หน้ารายการใบแจ้งหนี้ประจำเดือน",
-                    })
-                  }
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/manual/images/staff/02a_bills_overview.png" alt="หน้ารายการใบแจ้งหนี้" />
-                  <div className="screenshot-hover-hint">
-                    <Maximize2 size={13} />
-                    <span>คลิกเพื่อขยายภาพ</span>
+              {/* Callout Box: 2 Methods */}
+              <div style={{ background: "rgba(79, 70, 229, 0.05)", border: "1.5px solid rgba(79, 70, 229, 0.2)", borderRadius: "14px", padding: "1.25rem", marginBottom: "1.75rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#4f46e5", fontWeight: 800, fontSize: "1rem", marginBottom: "0.5rem" }}>
+                  <Smartphone size={18} />
+                  <span>ระบบรองรับการทำงาน 2 รูปแบบตามความสะดวก</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "0.85rem", fontSize: "0.86rem", color: "#334155" }}>
+                  <div style={{ background: "#ffffff", padding: "0.85rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <strong style={{ color: "#4f46e5" }}>📱 วิธีที่ 1: โหมดเดินจดบนมือถือ (แนะนำ)</strong>
+                    <p style={{ margin: "0.25rem 0 0", color: "#64748b", fontSize: "0.82rem", lineHeight: 1.5 }}>
+                      ใช้สมาร์ตโฟนถือเดินจดหน้าห้องพัก มีระบบจำเลขครั้งก่อน คำนวณเงินทันที และกดออกบิลรวมทั้งชั้นได้ในคลิกเดียว
+                    </p>
                   </div>
-                </div>
-                <div className="screenshot-caption">
-                  ภาพที่ 2a: หน้ารายการใบแจ้งหนี้ (1) ปุ่มออกบิลใหม่ (2) แท็บตัวกรองสถานะ (3) ตารางรายการบิลรายห้อง
-                </div>
-              </div>
-
-              <div className="screenshot-container">
-                <div
-                  className="screenshot-frame"
-                  onClick={() =>
-                    setLightboxImg({
-                      src: "/manual/images/staff/02b_meter_entry_modal.png",
-                      caption: "หน้าต่างบันทึกเลขมิเตอร์น้ำ-ไฟฟ้า",
-                    })
-                  }
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/manual/images/staff/02b_meter_entry_modal.png" alt="หน้าต่างบันทึกมิเตอร์" />
-                  <div className="screenshot-hover-hint">
-                    <Maximize2 size={13} />
-                    <span>คลิกเพื่อขยายภาพ</span>
-                  </div>
-                </div>
-                <div className="screenshot-caption">
-                  ภาพที่ 2b: หน้าต่างบันทึกมิเตอร์ (1) เลือกหมายเลขห้อง (2) กรอกเลขมิเตอร์น้ำและไฟฟ้า (3) บันทึกและออกบิล
-                </div>
-              </div>
-
-              <div className="manual-steps-list">
-                <div className="manual-step-item">
-                  <span className="step-num">1</span>
-                  <div>
-                    <strong>เข้าสู่เมนู "จัดการใบแจ้งหนี้" (Billing)</strong>
-                    <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      คลิกเมนูด้านซ้ายเพื่อดูรายการบิลทั้งหมด สามารถกรองดูเฉพาะบิลค้างชำระ รอตรวจ หรือชำระแล้วได้
-                    </div>
-                  </div>
-                </div>
-                <div className="manual-step-item">
-                  <span className="step-num">2</span>
-                  <div>
-                    <strong>คลิกปุ่ม "ออกบิลใหม่ / บันทึกมิเตอร์"</strong>
-                    <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      ระบบจะเปิดหน้าต่างบันทึกมิเตอร์ เลือกห้องพักที่ต้องการ และตรวจสอบเลขมิเตอร์ครั้งก่อนที่ระบบดึงมาให้อัตโนมัติ
-                    </div>
-                  </div>
-                </div>
-                <div className="manual-step-item">
-                  <span className="step-num">3</span>
-                  <div>
-                    <strong>กรอกเลขมิเตอร์ปัจจุบัน</strong>
-                    <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      กรอกเลขมิเตอร์น้ำประปา (อัตรา 18 บาท/ยูนิต) และไฟฟ้า (อัตรา 8 บาท/ยูนิต) ระบบจะคำนวณผลต่างยูนิตและยอดรวมทันที
-                    </div>
-                  </div>
-                </div>
-                <div className="manual-step-item">
-                  <span className="step-num">4</span>
-                  <div>
-                    <strong>กดปุ่ม "บันทึกและออกบิล"</strong>
-                    <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      ระบบจะสร้างใบแจ้งหนี้พร้อมรหัส QR PromptPay และส่งแจ้งเตือนเข้าหน้าผู้เช่าของห้องนั้นทันที
-                    </div>
+                  <div style={{ background: "#ffffff", padding: "0.85rem", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                    <strong style={{ color: "#0f172a" }}>💻 วิธีที่ 2: โหมดคอมพิวเตอร์สำนักงาน</strong>
+                    <p style={{ margin: "0.25rem 0 0", color: "#64748b", fontSize: "0.82rem", lineHeight: 1.5 }}>
+                      เปิดหน้าจอจัดการใบแจ้งหนี้บนคอมพิวเตอร์ เพื่อออกบิลรายห้อง ตรวจสอบประวัติบิลย้อนหลัง และพิมพ์ใบแจ้งหนี้เป็นกระดาษ
+                    </p>
                   </div>
                 </div>
               </div>
 
+              {/* SECTION 2.1: MOBILE PWA INSTALL & USAGE */}
+              <div style={{ marginBottom: "2rem" }}>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                  <Smartphone size={18} style={{ color: "#4f46e5" }} />
+                  2.1 วิธีติดตั้งและใช้งานเป็น "แอปพลิเคชันบนมือถือ"
+                </h3>
+                <p style={{ fontSize: "0.88rem", color: "var(--text-secondary)", marginBottom: "1rem", lineHeight: 1.6 }}>
+                  เจ้าหน้าที่สามารถติดตั้งหน้าจดมิเตอร์ลงบนหน้าจอโฮมของสมาร์ตโฟนได้ทันที โดยไม่ต้องดาวน์โหลดผ่านร้านค้าแอปพลิเคชัน เมื่อแตะเปิดใช้งาน จะแสดงผลเต็มหน้าจอ 100% ไร้แถบที่อยู่เว็บหรือปุ่มเบราว์เซอร์กวนใจ
+                </p>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+                  {/* iOS */}
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1rem" }}>
+                    <strong style={{ display: "block", fontSize: "0.92rem", color: "#0f172a", marginBottom: "0.5rem" }}>
+                      🍎 สำหรับ iPhone และ iPad (ผ่าน Safari)
+                    </strong>
+                    <ol style={{ paddingLeft: "1.25rem", margin: 0, fontSize: "0.84rem", color: "#475569", lineHeight: 1.7 }}>
+                      <li>เปิด Safari เข้าไปที่หน้าจดมิเตอร์ (<code style={{ background: "#e2e8f0", padding: "0.1rem 0.3rem", borderRadius: "4px" }}>/staff/meter-reading</code>)</li>
+                      <li>แตะปุ่ม <strong>แชร์</strong> ที่แถบด้านล่างของจอ</li>
+                      <li>เลื่อนลงมาแล้วเลือก <strong>"เพิ่มไปยังหน้าจอโฮม"</strong></li>
+                      <li>แตะ <strong>"เพิ่ม"</strong> ไอคอนแอปจะปรากฏบนหน้าจอมือถือทันที</li>
+                    </ol>
+                  </div>
+
+                  {/* Android */}
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "1rem" }}>
+                    <strong style={{ display: "block", fontSize: "0.92rem", color: "#0f172a", marginBottom: "0.5rem" }}>
+                      🤖 สำหรับมือถือ Android (ผ่าน Google Chrome)
+                    </strong>
+                    <ol style={{ paddingLeft: "1.25rem", margin: 0, fontSize: "0.84rem", color: "#475569", lineHeight: 1.7 }}>
+                      <li>เปิด Chrome เข้าไปที่หน้าจดมิเตอร์</li>
+                      <li>แตะปุ่ม <strong>จุดสามจุด (⋮)</strong> ที่มุมบนขวา</li>
+                      <li>เลือก <strong>"ติดตั้งแอป"</strong> หรือ "เพิ่มลงในหน้าจอหลัก"</li>
+                      <li>กดยืนยันการติดตั้ง ไอคอนแอปจะไปอยู่ที่หน้าจอหลักทันที</li>
+                    </ol>
+                  </div>
+                </div>
+
+                {/* Screenshot of Mobile Walk Mode */}
+                <div className="screenshot-container" style={{ maxWidth: "340px", margin: "1.5rem auto" }}>
+                  <div
+                    className="screenshot-frame"
+                    style={{ borderRadius: "28px", overflow: "hidden", boxShadow: "0 10px 30px -5px rgba(0,0,0,0.18)" }}
+                    onClick={() =>
+                      setLightboxImg({
+                        src: "/manual/images/staff/02c_meter_reading_mobile.png",
+                        caption: "หน้าจอโหมดเดินจดมิเตอร์น้ำ-ไฟบนมือถือ แสดงผลเต็มหน้าจอ 100%",
+                      })
+                    }
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/manual/images/staff/02c_meter_reading_mobile.png" alt="หน้าจอเดินจดมิเตอร์บนมือถือ" />
+                    <div className="screenshot-hover-hint">
+                      <Maximize2 size={13} />
+                      <span>คลิกเพื่อขยายภาพ</span>
+                    </div>
+                  </div>
+                  <div className="screenshot-caption" style={{ textAlign: "center" }}>
+                    ภาพที่ 2a: หน้าจอเดินจดมิเตอร์บนมือถือ พร้อมระบบจำเลขก่อนหน้าและคำนวณยอดเงินอัตโนมัติ
+                  </div>
+                </div>
+
+                <div className="manual-steps-list">
+                  <div className="manual-step-item">
+                    <span className="step-num">1</span>
+                    <div>
+                      <strong>เลือกชั้นที่ต้องการเดินจด และรอบเดือน</strong>
+                      <div style={{ color: "#475569", marginTop: "0.15rem" }}>
+                        แตะเลือกแถบชั้น เช่น <code>[ ชั้น 2 ]</code> <code>[ ชั้น 3 ]</code> ระบบจะกรองห้องเฉพาะชั้นนั้นขึ้นมา พร้อมหลอดแสดงเปอร์เซ็นต์ความคืบหน้า
+                      </div>
+                    </div>
+                  </div>
+                  <div className="manual-step-item">
+                    <span className="step-num">2</span>
+                    <div>
+                      <strong>บันทึกเลขมิเตอร์ใน "โหมดเดินจดทีละห้อง"</strong>
+                      <div style={{ color: "#475569", marginTop: "0.15rem" }}>
+                        หน้าจอจะแสดงการ์ดห้องขนาดใหญ่ พร้อม <strong>"เลขมิเตอร์ครั้งก่อน"</strong> ที่ระบบดึงมาให้อัตโนมัติ กรอกเลขปัจจุบันของมิเตอร์น้ำและไฟฟ้า ระบบจะคำนวณหน่วยที่ใช้และยอดเงินรวมให้เห็นทันที
+                      </div>
+                    </div>
+                  </div>
+                  <div className="manual-step-item">
+                    <span className="step-num">3</span>
+                    <div>
+                      <strong>แตะปุ่ม "บันทึก & ห้องถัดไป" เพื่อเดินจดห้องถัดไป</strong>
+                      <div style={{ color: "#475569", marginTop: "0.15rem" }}>
+                        ระบบจะบันทึกข้อมูลลงเครื่องอัตโนมัติ (แม้สัญญาณอินเทอร์เน็ตขาดหายข้อมูลก็ไม่สูญหาย) แล้วสลับไปยังห้องถัดไปทันทีด้วยมือเดียวอย่างรวดเร็ว
+                      </div>
+                    </div>
+                  </div>
+                  <div className="manual-step-item">
+                    <span className="step-num">4</span>
+                    <div>
+                      <strong>แตะ "ตรวจทาน & ออกบิล" เพื่อสร้างบิลพร้อมกันทั้งชั้น</strong>
+                      <div style={{ color: "#475569", marginTop: "0.15rem" }}>
+                        เมื่อจดครบแล้ว แตะปุ่มตรวจทานที่แถบด้านล่าง กำหนดวันครบกำหนดชำระ แล้วกดยืนยัน ระบบจะออกใบแจ้งหนี้ให้ทุกห้องพร้อมกันในคลิกเดียว
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2.2: DESKTOP BILLING & PRINTING */}
+              <div style={{ marginBottom: "2rem", borderTop: "1px solid #e2e8f0", paddingTop: "1.5rem" }}>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                  <Receipt size={18} style={{ color: "#4f46e5" }} />
+                  2.2 การออกบิลและพิมพ์ใบแจ้งหนี้ผ่านคอมพิวเตอร์สำนักงาน
+                </h3>
+                <p style={{ fontSize: "0.88rem", color: "var(--text-secondary)", marginBottom: "1rem", lineHeight: 1.6 }}>
+                  สำหรับกรณีต้องการออกบิลเป็นรายห้อง หรือต้องการสั่งพิมพ์ใบแจ้งหนี้ขนาดมาตรฐาน A4 พร้อม QR Code เพื่อนำไปใส่กล่องจดหมายหน้าห้องพัก
+                </p>
+
+                <div className="screenshot-container">
+                  <div
+                    className="screenshot-frame"
+                    onClick={() =>
+                      setLightboxImg({
+                        src: "/manual/images/staff/02a_bills_overview.png",
+                        caption: "หน้ารายการใบแจ้งหนี้ประจำเดือนบนคอมพิวเตอร์",
+                      })
+                    }
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/manual/images/staff/02a_bills_overview.png" alt="หน้ารายการใบแจ้งหนี้" />
+                    <div className="screenshot-hover-hint">
+                      <Maximize2 size={13} />
+                      <span>คลิกเพื่อขยายภาพ</span>
+                    </div>
+                  </div>
+                  <div className="screenshot-caption">
+                    ภาพที่ 2b: หน้ารายการใบแจ้งหนี้บนคอมพิวเตอร์ (1) ปุ่มเข้าโหมดมือถือ (2) ปุ่มออกบิลใหม่ (3) ตารางรายการบิลรายห้อง
+                  </div>
+                </div>
+
+                <div className="screenshot-container">
+                  <div
+                    className="screenshot-frame"
+                    onClick={() =>
+                      setLightboxImg({
+                        src: "/manual/images/staff/02b_meter_entry_modal.png",
+                        caption: "หน้าต่างบันทึกเลขมิเตอร์รายห้องบนคอมพิวเตอร์",
+                      })
+                    }
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/manual/images/staff/02b_meter_entry_modal.png" alt="หน้าต่างบันทึกเลขมิเตอร์" />
+                    <div className="screenshot-hover-hint">
+                      <Maximize2 size={13} />
+                      <span>คลิกเพื่อขยายภาพ</span>
+                    </div>
+                  </div>
+                  <div className="screenshot-caption">
+                    ภาพที่ 2c: หน้าต่างบันทึกมิเตอร์รายห้องบนคอมพิวเตอร์ พร้อมระบบคำนวณค่าน้ำ-ค่าไฟ
+                  </div>
+                </div>
+
+                <div className="manual-steps-list">
+                  <div className="manual-step-item">
+                    <span className="step-num">1</span>
+                    <div>
+                      <strong>เข้าสู่เมนู "ออกบิลค่าห้อง"</strong>
+                      <div style={{ color: "#475569", marginTop: "0.15rem" }}>
+                        คลิกเมนูด้านซ้ายเพื่อดูรายการบิลทั้งหมด สามารถค้นหาตามเลขห้อง หรือกรองดูเฉพาะบิลค้างชำระ รอตรวจ หรือชำระแล้วได้
+                      </div>
+                    </div>
+                  </div>
+                  <div className="manual-step-item">
+                    <span className="step-num">2</span>
+                    <div>
+                      <strong>คลิกปุ่ม "ออกบิลใหม่ / บันทึกมิเตอร์"</strong>
+                      <div style={{ color: "#475569", marginTop: "0.15rem" }}>
+                        ระบบจะเปิดหน้าต่างบันทึกมิเตอร์ เลือกห้องพักที่ต้องการ และตรวจสอบเลขมิเตอร์ครั้งก่อนที่ระบบดึงมาให้อัตโนมัติ
+                      </div>
+                    </div>
+                  </div>
+                  <div className="manual-step-item">
+                    <span className="step-num">3</span>
+                    <div>
+                      <strong>กรอกเลขมิเตอร์ปัจจุบัน และกดบันทึก</strong>
+                      <div style={{ color: "#475569", marginTop: "0.15rem" }}>
+                        กรอกเลขมิเตอร์น้ำประปา (18 บ./หน่วย) และไฟฟ้า (8 บ./หน่วย) ระบบคำนวณยอดสุทธิและสร้างบิลพร้อม QR Code ทันที
+                      </div>
+                    </div>
+                  </div>
+                  <div className="manual-step-item">
+                    <span className="step-num">4</span>
+                    <div>
+                      <strong>การพิมพ์ใบแจ้งหนี้และใบเสร็จ</strong>
+                      <div style={{ color: "#475569", marginTop: "0.15rem" }}>
+                        คลิกไอคอนเครื่องพิมพ์ที่แถวของบิลห้องนั้นๆ เพื่อเปิดหน้าตัวอย่างพิมพ์ขนาด A4 พร้อมหัวจดหมายทางการของหอพักเดอะ สราญรมย์
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CALLOUT WARNING */}
               <div className="callout-danger">
                 <div className="callout-danger-header">
                   <AlertTriangle size={16} />
-                  <span>ข้อควรระวังสำคัญ: ตรวจสอบเลขมิเตอร์ก่อนกดยืนยัน</span>
+                  <span>กฎเหล็กและข้อควรระวังสำคัญ: ตรวจสอบเลขมิเตอร์ก่อนออกบิล</span>
                 </div>
                 <div className="callout-danger-text">
-                  ก่อนกดยืนยันออกบิล ต้องตรวจสอบให้แน่ใจว่าเลขมิเตอร์ปัจจุบันมีค่ามากกว่าเลขมิเตอร์ครั้งก่อนเสมอ
-                  หากใส่เลขผิดจนออกบิลแล้ว ต้องประสานงานผู้ดูแลระบบเพื่อทำการยกเลิกบิลใบเดิมก่อนออกใบใหม่
+                  <ul style={{ margin: 0, paddingLeft: "1.25rem", lineHeight: 1.6 }}>
+                    <li><strong>เลขมิเตอร์ปัจจุบันต้องมากกว่าเลขครั้งก่อนเสมอ</strong>: หากพิมพ์ตัวเลขน้อยกว่า ระบบจะมีแถบเตือนสีส้มแจ้งเตือนทันที กรุณาตรวจทานตัวเลขที่ตู้มิเตอร์อีกครั้ง</li>
+                    <li><strong>ห้องว่างที่ไม่มีผู้เช่า</strong>: ระบบจะขึ้นป้ายสีเทาว่า "ห้องว่าง" ให้อัตโนมัติ และจะไม่นำไปรวมในการออกบิลค่าเช่า เพื่อป้องกันการสร้างบิลผิดพลาด</li>
+                    <li><strong>การแก้ไขบิล</strong>: เมื่อกดออกบิลแล้ว ผู้เช่าจะเห็นยอดเงินทันทีในหน้าแดชบอร์ด หากพบว่าใส่ตัวเลขผิด กรุณาแจ้งผู้ดูแลระบบเพื่อปรับปรุงข้อมูลให้ถูกต้อง</li>
+                  </ul>
                 </div>
               </div>
             </section>
@@ -435,7 +796,7 @@ export default function StaffManualPage() {
             <section id="ch3" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 3</span>
-                <h2 className="chapter-title">การตรวจสอบสลิปและอนุมัติการชำระเงิน (Payments & Slip Verification)</h2>
+                <h2 className="chapter-title">การตรวจสอบสลิปและอนุมัติการชำระเงิน</h2>
                 <p className="chapter-subtitle">
                   ขั้นตอนการตรวจสอบหลักฐานการโอนเงิน เทียบยอดและเวลาโอนกับสเตตเมนต์ธนาคาร และการออกใบเสร็จ
                 </p>
@@ -489,7 +850,7 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">1</span>
                   <div>
-                    <strong>เข้าสู่เมนู "การชำระเงิน" (Payments)</strong>
+                    <strong>เข้าสู่เมนู "การชำระเงิน"</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       เลือกแท็บ "รอตรวจสอบ" เพื่อดูรายการสลิปที่ผู้เช่าส่งเข้ามาใหม่
                     </div>
@@ -532,7 +893,7 @@ export default function StaffManualPage() {
             <section id="ch4" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 4</span>
-                <h2 className="chapter-title">การจัดการผังห้องพักและเปลี่ยนสถานะ (Rooms Management)</h2>
+                <h2 className="chapter-title">การจัดการผังห้องพักและเปลี่ยนสถานะ</h2>
                 <p className="chapter-subtitle">
                   การตรวจสอบผังห้องพักแยกตามชั้น การเปลี่ยนสถานะห้องพัก และการเตรียมความพร้อมสำหรับผู้เช่าใหม่
                 </p>
@@ -564,7 +925,7 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">1</span>
                   <div>
-                    <strong>เข้าสู่เมนู "ผังห้องพัก" (Rooms)</strong>
+                    <strong>เข้าสู่เมนู "ผังห้องพัก"</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       ระบบจะแสดงการ์ดห้องพักทั้งหมดแยกตามชั้น พร้อมสีบอกสถานะอย่างชัดเจน
                     </div>
@@ -575,9 +936,9 @@ export default function StaffManualPage() {
                   <div>
                     <strong>ความหมายของสถานะห้องพักทั้ง 3 แบบ</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      • <strong>มีผู้เช่า (Occupied):</strong> การ์ดสีน้ำเงิน/เขียว มีผู้พักอาศัยอยู่และมีสัญญาเช่าที่ยังมีผล
-                      <br />• <strong>ห้องว่าง (Vacant):</strong> การ์ดสีเขียวมิ้นต์ ห้องสะอาดพร้อมเปิดทำสัญญาให้ผู้เช่าใหม่
-                      <br />• <strong>ปรับปรุง (Maintenance):</strong> การ์ดสีส้ม ห้องอยู่ระหว่างทำความสะอาดหรือซ่อมแซม ห้ามเปิดเช่า
+                      • <strong>มีผู้เช่า:</strong> การ์ดสีน้ำเงิน/เขียว มีผู้พักอาศัยอยู่และมีสัญญาเช่าที่ยังมีผล
+                      <br />• <strong>ห้องว่าง:</strong> การ์ดสีเขียวมิ้นต์ ห้องสะอาดพร้อมเปิดทำสัญญาให้ผู้เช่าใหม่
+                      <br />• <strong>ปรับปรุง:</strong> การ์ดสีส้ม ห้องอยู่ระหว่างทำความสะอาดหรือซ่อมแซม ห้ามเปิดเช่า
                     </div>
                   </div>
                 </div>
@@ -608,7 +969,7 @@ export default function StaffManualPage() {
             <section id="ch5" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 5</span>
-                <h2 className="chapter-title">การจัดการงานแจ้งซ่อมบำรุง (Repairs & Maintenance Workflow)</h2>
+                <h2 className="chapter-title">การจัดการงานแจ้งซ่อมบำรุง</h2>
                 <p className="chapter-subtitle">
                   ขั้นตอนการรับเรื่องแจ้งซ่อมจากผู้เช่า การประเมินความเร่งด่วน การจ่ายงานช่าง และการบันทึกผลการซ่อม
                 </p>
@@ -649,7 +1010,7 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">2</span>
                   <div>
-                    <strong>ประเมินความเร่งด่วนและจ่ายงานช่าง (Assign Technician)</strong>
+                    <strong>ประเมินความเร่งด่วนและจ่ายงานช่าง</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       เลือกช่างเทคนิคผู้รับผิดชอบงาน (ช่างไฟ, ช่างประปา, หรือช่างแอร์) พร้อมระบุกำหนดเวลาเข้าดำเนินการ
                     </div>
@@ -658,16 +1019,16 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">3</span>
                   <div>
-                    <strong>อัปเดตสถานะเป็น "กำลังดำเนินการ" (In Progress)</strong>
+                    <strong>อัปเดตสถานะเป็น "กำลังดำเนินการ"</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      เมื่อช่างเริ่มเข้าตรวจสอบห้องพัก ให้ปรับสถานะเพื่อให้ผู้เช่าเห็นความคืบหน้าแบบเรียลไทม์ในหน้าแอพ
+                      เมื่อช่างเริ่มเข้าตรวจสอบห้องพัก ให้ปรับสถานะเพื่อให้ผู้เช่าเห็นความคืบหน้าได้ทันทีในระบบ
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num">4</span>
                   <div>
-                    <strong>ปิดงานซ่อมบำรุงเป็น "เสร็จสิ้น" (Completed)</strong>
+                    <strong>ปิดงานซ่อมบำรุงเป็น "เสร็จสิ้น"</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       เมื่อช่างแก้ไขเรียบร้อย ให้บันทึกรายละเอียดการซ่อม (เช่น เปลี่ยนก๊อกน้ำใหม่) และกดยืนยันปิดงาน
                     </div>
@@ -678,7 +1039,7 @@ export default function StaffManualPage() {
               <div className="callout-danger">
                 <div className="callout-danger-header">
                   <AlertTriangle size={16} />
-                  <span>เกณฑ์ SLA สำหรับงานซ่อมฉุกเฉิน (Emergency Repairs)</span>
+                  <span>เกณฑ์เวลามาตรฐานสำหรับงานซ่อมฉุกเฉิน</span>
                 </div>
                 <div className="callout-danger-text">
                   หากเป็นกรณีฉุกเฉิน เช่น ไฟฟ้าลัดวงจร ท่อน้ำแตกน้ำท่วมห้อง หรือแอร์น้ำรั่วอย่างหนัก เจ้าหน้าที่ต้องโทรประสานช่างเทคนิคเข้าหน้างานภายใน 30 นาที และดำเนินการแก้ไขให้แล้วเสร็จภายใน 2 ชั่วโมง
@@ -690,7 +1051,7 @@ export default function StaffManualPage() {
             <section id="ch6" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 6</span>
-                <h2 className="chapter-title">ข้อมูลผู้เช่าและสัญญาเช่า (Tenants & Contracts)</h2>
+                <h2 className="chapter-title">ข้อมูลผู้เช่าและสัญญาเช่า</h2>
                 <p className="chapter-subtitle">
                   การจัดเก็บข้อมูลผู้พักอาศัย การตรวจสอบระยะเวลาสัญญาเช่า และการจัดการเงินประกันความเสียหาย
                 </p>
@@ -733,14 +1094,14 @@ export default function StaffManualPage() {
                   <div>
                     <strong>ตรวจสอบวันเริ่มและสิ้นสุดสัญญาเช่า</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      ระบบจะแสดงสถานะสัญญาว่าปกติ ใกล้หมดอายุ (น้อยกว่า 30 วัน) หรือหมดอายุแล้ว เพื่อให้นิติดำเนินการต่อสัญญาได้ทันท่วงที
+                      ระบบจะแสดงสถานะสัญญาว่าปกติ ใกล้หมดอายุ (น้อยกว่า 30 วัน) หรือหมดอายุแล้ว เพื่อให้เจ้าหน้าที่ดำเนินการต่อสัญญาได้ทันท่วงที
                     </div>
                   </div>
                 </div>
                 <div className="manual-step-item">
                   <span className="step-num">3</span>
                   <div>
-                    <strong>บันทึกยอดเงินประกันห้องพัก (Deposit)</strong>
+                    <strong>บันทึกยอดเงินประกันห้องพัก</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       แสดงยอดเงินประกันความเสียหายที่ผู้เช่าเคยวางไว้ สำหรับใช้คำนวณหักลบกลบหนี้เมื่อแจ้งย้ายออก
                     </div>
@@ -763,7 +1124,7 @@ export default function StaffManualPage() {
             <section id="ch7" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 7</span>
-                <h2 className="chapter-title">การส่งประกาศและแจ้งเตือนผ่าน LINE (Announcements & LINE Broadcast)</h2>
+                <h2 className="chapter-title">การส่งประกาศและแจ้งเตือนผ่านไลน์</h2>
                 <p className="chapter-subtitle">
                   ขั้นตอนการเผยแพร่ข่าวสารของอาคาร การแจ้งปิดปรับปรุงระบบสาธารณูปโภค และการบรอดแคสต์เข้า LINE OA
                 </p>
@@ -795,7 +1156,7 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">1</span>
                   <div>
-                    <strong>คลิกปุ่ม "สร้างประกาศใหม่" (Create Announcement)</strong>
+                    <strong>คลิกปุ่ม "สร้างประกาศใหม่"</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       เลือกหมวดหมู่ประกาศ เช่น ประกาศด่วน ปิดปรับปรุงน้ำ-ไฟ กิจกรรมหอพัก หรือระเบียบการอยู่อาศัย
                     </div>
@@ -837,7 +1198,7 @@ export default function StaffManualPage() {
             <section id="ch8" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 8</span>
-                <h2 className="chapter-title">การจัดการเนื้อหาหน้าเว็บไซต์หลัก (Landing Page Content CMS)</h2>
+                <h2 className="chapter-title">การจัดการเนื้อหาหน้าเว็บไซต์หลัก</h2>
                 <p className="chapter-subtitle">
                   การแก้ไขราคาค่าเช่า ข้อมูลสิ่งอำนวยความสะดวก และรูปภาพส่วนกลางที่แสดงบนหน้าแรกของเว็บไซต์
                 </p>
@@ -849,7 +1210,7 @@ export default function StaffManualPage() {
                   onClick={() =>
                     setLightboxImg({
                       src: "/manual/images/staff/08_site_content.png",
-                      caption: "แผงควบคุมเนื้อหาหน้าเว็บไซต์หลัก CMS",
+                      caption: "แผงควบคุมเนื้อหาหน้าเว็บไซต์หลัก",
                     })
                   }
                 >
@@ -869,9 +1230,9 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">1</span>
                   <div>
-                    <strong>เข้าสู่เมนู "เนื้อหาหน้าแรก" (Site Content)</strong>
+                    <strong>เข้าสู่เมนู "เนื้อหาหน้าแรก"</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
-                      ระบบจะแสดงส่วนต่างๆ ของหน้าเว็บที่อนุญาตให้นิติบุคคลปรับแต่งได้
+                      ระบบจะแสดงส่วนต่างๆ ของหน้าเว็บที่อนุญาตให้เจ้าหน้าที่หอพักปรับแต่งได้
                     </div>
                   </div>
                 </div>
@@ -887,7 +1248,7 @@ export default function StaffManualPage() {
                 <div className="manual-step-item">
                   <span className="step-num">3</span>
                   <div>
-                    <strong>กดปุ่ม "บันทึกการเปลี่ยนแปลง" (Save Changes)</strong>
+                    <strong>กดปุ่ม "บันทึกการเปลี่ยนแปลง"</strong>
                     <div style={{ color: "#475569", marginTop: "0.15rem" }}>
                       ข้อมูลที่อัปเดตจะแสดงผลบนหน้าเว็บไซต์หลักสาธารณะทันทีโดยไม่ต้องเริ่มต้นระบบใหม่
                     </div>
@@ -911,9 +1272,9 @@ export default function StaffManualPage() {
             <section id="ch9" className="chapter-box">
               <div className="chapter-header">
                 <span className="chapter-badge">บทที่ 9</span>
-                <h2 className="chapter-title">คำถามที่พบบ่อยสำหรับนิติบุคคล (Staff Operations FAQ)</h2>
+                <h2 className="chapter-title">คำถามที่พบบ่อยสำหรับการปฏิบัติงาน</h2>
                 <p className="chapter-subtitle">
-                  รวมคำถามและแนวทางแก้ไขปัญหาที่พบบ่อยในการปฏิบัติงานประจำวันของเจ้าหน้าที่นิติบุคคล
+                  รวมคำถามและแนวทางแก้ไขปัญหาที่พบบ่อยในการปฏิบัติงานประจำวันของเจ้าหน้าที่หอพัก
                 </p>
               </div>
 
@@ -931,7 +1292,7 @@ export default function StaffManualPage() {
                     <span>คำถามที่ 1: หากกรอกเลขมิเตอร์น้ำหรือไฟฟ้าผิด และกดยืนยันออกบิลไปแล้ว ต้องแก้ไขอย่างไร?</span>
                   </div>
                   <div style={{ color: "#475569", fontSize: "0.88rem", lineHeight: 1.6, paddingLeft: "1.6rem" }}>
-                    <strong>คำตอบ:</strong> หากบิลดังกล่าวยังอยู่ในสถานะ "รอชำระ" เจ้าหน้าที่สามารถกดเข้าไปที่รายละเอียดบิลใบนั้น แล้วคลิก "แก้ไขมิเตอร์" เพื่อกรอกเลขที่ถูกต้องใหม่ได้ แต่หากผู้เช่าได้ทำการโอนเงินเข้ามาแล้ว ให้ติดต่อผู้ดูแลระบบ (Owner) เพื่อปรับยอดส่วนต่างในบิลรอบถัดไป
+                    <strong>คำตอบ:</strong> หากบิลดังกล่าวยังอยู่ในสถานะ "รอชำระ" เจ้าหน้าที่สามารถกดเข้าไปที่รายละเอียดบิลใบนั้น แล้วคลิก "แก้ไขมิเตอร์" เพื่อกรอกเลขที่ถูกต้องใหม่ได้ แต่หากผู้เช่าได้ทำการโอนเงินเข้ามาแล้ว ให้ติดต่อเจ้าของหอพัก เพื่อปรับยอดส่วนต่างในบิลรอบถัดไป
                   </div>
                 </div>
 
@@ -965,7 +1326,7 @@ export default function StaffManualPage() {
                     <span>คำถามที่ 3: ห้องพักที่ซ่อมแซมและทำความสะอาดเสร็จเรียบร้อย จะเปิดให้เช่าได้อย่างไร?</span>
                   </div>
                   <div style={{ color: "#475569", fontSize: "0.88rem", lineHeight: 1.6, paddingLeft: "1.6rem" }}>
-                    <strong>คำตอบ:</strong> ให้ไปที่เมนู "ผังห้องพัก" (Rooms) ค้นหาหมายเลขห้องที่ต้องการ แล้วคลิกเปลี่ยนสถานะจากการ์ดห้องพักจาก "ปรับปรุง" (Maintenance) เป็น "ห้องว่าง" (Vacant) เมื่อเปลี่ยนสถานะแล้ว ห้องนั้นจะพร้อมทำสัญญาเช่าใหม่ได้ทันที
+                    <strong>คำตอบ:</strong> ให้ไปที่เมนู "ผังห้องพัก" ค้นหาหมายเลขห้องที่ต้องการ แล้วคลิกเปลี่ยนสถานะจากการ์ดห้องพักจาก "ปรับปรุง" เป็น "ห้องว่าง" เมื่อเปลี่ยนสถานะแล้ว ห้องนั้นจะพร้อมทำสัญญาเช่าใหม่ได้ทันที
                   </div>
                 </div>
 
@@ -1024,10 +1385,10 @@ export default function StaffManualPage() {
               <div className="callout-tip" style={{ marginTop: "1.5rem" }}>
                 <div className="callout-tip-header">
                   <ShieldCheck size={16} />
-                  <span>การประสานงานความช่วยเหลือระดับสูง (Escalation Support)</span>
+                  <span>การประสานงานความช่วยเหลือระดับสูง</span>
                 </div>
                 <div className="callout-tip-text">
-                  หากพบปัญหาทางเทคนิคของระบบฐานข้อมูล หรือกรณีมีข้อพิพาทเรื่องการเงินกับผู้เช่าที่นิติบุคคลไม่สามารถตัดสินใจได้เอง
+                  หากพบปัญหาทางเทคนิคของระบบฐานข้อมูล หรือกรณีมีข้อพิพาทเรื่องการเงินกับผู้เช่าที่เจ้าหน้าที่ไม่สามารถตัดสินใจได้เอง
                   ให้ส่งรายงานสรุปเรื่องเข้าสู่อีเมลผู้บริหารโครงการที่ <strong>owner@saranrom-residence.com</strong> เพื่อให้เจ้าของโครงการพิจารณาอนุมัติเป็นกรณีพิเศษ
                 </div>
               </div>
@@ -1042,7 +1403,7 @@ export default function StaffManualPage() {
               <PhoneCall size={22} />
             </div>
             <div>
-              <div className="manual-contact-title">สำนักงานนิติบุคคล เดอะ สราญรมย์ เรสซิเดนซ์</div>
+              <div className="manual-contact-title">สำนักงานหอพัก เดอะ สราญรมย์ เรสซิเดนซ์</div>
               <div className="manual-contact-subtitle">
                 บริการงานบริหารอาคาร ดูแลความปลอดภัย จดมิเตอร์ และงานซ่อมบำรุงประจำวัน
               </div>

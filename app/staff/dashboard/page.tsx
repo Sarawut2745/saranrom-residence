@@ -69,11 +69,11 @@ export default function StaffDashboardPage() {
             </h1>
             {isOwner ? (
               <span className="badge badge-owner">
-                <Crown size={12} /> สิทธิ์เจ้าของหอพัก (Owner Dashboard)
+                <Crown size={12} /> เจ้าของหอพัก
               </span>
             ) : (
               <span className="badge badge-maintenance">
-                <ShieldCheck size={12} /> นิติบุคคล (Staff Operations)
+                <ShieldCheck size={12} /> เจ้าหน้าที่
               </span>
             )}
           </div>
@@ -86,7 +86,7 @@ export default function StaffDashboardPage() {
 
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           <Link href="/staff/payments" className="btn btn-primary btn-sm">
-            <CreditCard size={15} /> ตรวจสอบสลิปรออนุมัติ ({pendingSlips.length})
+            <CreditCard size={15} /> ตรวจสลิป ({pendingSlips.length})
           </Link>
           <Link href="/staff/bills" className="btn btn-secondary btn-sm">
             <Receipt size={15} /> ออกบิลใหม่
@@ -100,7 +100,7 @@ export default function StaffDashboardPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
             <Crown size={18} style={{ color: "#7e22ce" }} />
             <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--text-primary)" }}>
-              สรุปภาพรวมการเงินและผลประกอบการ (Owner Financial Highlights)
+              สรุปภาพรวมการเงิน
             </h2>
           </div>
 
@@ -260,7 +260,7 @@ export default function StaffDashboardPage() {
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <CreditCard size={18} style={{ color: "#4f46e5" }} />
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>
-                คิวตรวจสอบสลิปโอนเงินล่าสุด
+                สลิปที่รอตรวจล่าสุด
               </h3>
             </div>
             <Link href="/staff/payments" style={{ color: "#4f46e5", fontSize: "0.85rem", fontWeight: 600 }}>
@@ -321,11 +321,11 @@ export default function StaffDashboardPage() {
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <DoorOpen size={18} style={{ color: "#4f46e5" }} />
               <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)" }}>
-                สรุปสถานะห้องพักประจำอาคาร
+                สถานะห้องพักทั้งหมด
               </h3>
             </div>
             <Link href="/staff/rooms" style={{ color: "#4f46e5", fontSize: "0.85rem", fontWeight: 600 }}>
-              จัดการผังห้อง →
+              ดูผังห้อง →
             </Link>
           </div>
 

@@ -52,7 +52,7 @@ export default function OwnerRoomTypesPage() {
     setWaterRate(18);
     setElectricRate(8);
     setAmenitiesStr("เครื่องปรับอากาศ, เครื่องทำน้ำอุ่น, เตียง 5 ฟุต, Wi-Fi");
-    setImageUrl("https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80");
+    setImageUrl("/images/rooms/studio-standard.jpg");
     setIsAddOpen(true);
   };
 
@@ -138,7 +138,7 @@ export default function OwnerRoomTypesPage() {
           <div key={rt.id} className="glass-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <div style={{ height: 180, width: "100%", background: "#000", position: "relative" }}>
               <img
-                src={rt.image_url || "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"}
+                src={rt.image_url || "/images/rooms/studio-standard.jpg"}
                 alt={rt.name}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
@@ -307,7 +307,7 @@ export default function OwnerRoomTypesPage() {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="https://images.unsplash.com/photo-..."
+                  placeholder="/images/rooms/..."
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   style={{ textOverflow: "ellipsis", fontSize: "16px" }}

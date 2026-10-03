@@ -89,7 +89,7 @@ export const initialRoomTypes: RoomType[] = [
       "ระเบียงซักล้างส่วนตัว",
       "High-speed Wi-Fi",
     ],
-    image_url: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80",
+    image_url: "/images/rooms/studio-standard.jpg",
   },
   {
     id: "rt-2",
@@ -107,7 +107,7 @@ export const initialRoomTypes: RoomType[] = [
       "ไมโครเวฟ",
       "เครื่องทำน้ำอุ่นระบบดิจิทัล",
     ],
-    image_url: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?auto=format&fit=crop&w=800&q=80",
+    image_url: "/images/rooms/deluxe-corner.jpg",
   },
   {
     id: "rt-3",
@@ -124,7 +124,7 @@ export const initialRoomTypes: RoomType[] = [
       "สมาร์ททีวี 55 นิ้ว 4K",
       "เตียง King Size พรีเมียม",
     ],
-    image_url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80",
+    image_url: "/images/rooms/executive-suite.jpg",
   },
 ];
 
@@ -379,7 +379,7 @@ export const initialSiteContent: SiteContent[] = [
       phone: "081-999-8888",
       line: "@saranrom_dorm",
     },
-    image_url: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1600&q=80",
+    image_url: "/images/property/residence-building.jpg",
     order_index: 1,
     is_active: true,
   },
@@ -443,7 +443,7 @@ export const initialSiteContent: SiteContent[] = [
         "โรงพยาบาลสุขุมวิท",
       ],
     },
-    image_url: "https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=1200&q=80",
+    image_url: "/images/property/residence-entrance.jpg",
     order_index: 3,
     is_active: true,
   },

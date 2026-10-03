@@ -75,7 +75,7 @@ export default function StaffRoomsPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h2 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--text-primary)" }}>
-            ผังห้องพักและจัดการสถานะ (Rooms Management)
+            จัดการห้องพัก
           </h2>
           <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem" }}>
             ตรวจสอบสถานะความว่าง และปรับเปลี่ยนสถานะห้องพัก (ว่าง / มีผู้เช่า / ซ่อมบำรุง)
